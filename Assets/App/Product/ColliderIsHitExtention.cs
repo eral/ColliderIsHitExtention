@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Linq;
 
 public class ColliderIsHitExtention : MonoBehaviour {
 
@@ -73,7 +74,57 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(BoxCollider lhs, BoxCollider rhs) {
-		return false;
+		var lhs_transform = lhs.transform;
+		var lhs_bounds = lhs.bounds;
+		var rhs_transform = rhs.transform;
+		var rhs_bounds = rhs.bounds;
+
+		var distance_axis = lhs_bounds.center - rhs_bounds.center;
+		var lhs_unit_axis = new Axis3d(lhs_transform.rotation);
+		var lhs_extents = Vector3.Scale(lhs.size * 0.5f, lhs_transform.lossyScale);
+		var lhs_extents_axis = new Axis3d(lhs_extents, lhs_transform.rotation);
+		var rhs_unit_axis = new Axis3d(rhs_transform.rotation);
+		var rhs_extents = Vector3.Scale(rhs.size * 0.5f, rhs_transform.lossyScale);
+		var rhs_extents_axis = new Axis3d(rhs_extents, rhs_transform.rotation);
+
+		//lhs系分離軸
+		for (int i = 0, i_max = 3; i < i_max; ++i) {
+			var split_axis = lhs_unit_axis[i];
+			var distance = Mathf.Abs(Vector3.Dot(split_axis, distance_axis));
+			distance -= lhs_extents[i];
+			distance -= GetVectorLengthOfProjection(rhs_extents_axis, split_axis);
+			if (0.0f < distance) {
+				//NoHit
+				return false;
+			}
+		}
+		//rhs系分離軸
+		for (int i = 0, i_max = 3; i < i_max; ++i) {
+			var split_axis = rhs_unit_axis[i];
+			var distance = Mathf.Abs(Vector3.Dot(split_axis, distance_axis));
+			distance -= GetVectorLengthOfProjection(lhs_extents_axis, split_axis);
+			distance -= rhs_extents[i];
+			if (0.0f < distance) {
+				//NoHit
+				return false;
+			}
+		}
+		//第3系分離軸
+		for (int i = 0, i_max = 3; i < i_max; ++i) {
+			for (int k = 0, k_max = 3; k < k_max; ++k) {
+				var split_axis = Vector3.Cross(lhs_unit_axis[i], rhs_unit_axis[k]);
+				var distance = Mathf.Abs(Vector3.Dot(split_axis, distance_axis));
+				distance -= GetVectorLengthOfProjection(lhs_extents_axis, split_axis);
+				distance -= GetVectorLengthOfProjection(rhs_extents_axis, split_axis);
+				if (0.0f < distance) {
+					//NoHit
+					return false;
+				}
+			}
+		}
+
+		//Hit
+		return true;
 	}
 
 	public static bool IsHit(BoxCollider lhs, SphereCollider rhs) {
@@ -105,7 +156,16 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(SphereCollider lhs, SphereCollider rhs) {
-		return false;
+		var lhs_bounds = lhs.bounds;
+		var rhs_bounds = rhs.bounds;
+
+		var sqr_distance = (lhs_bounds.center - rhs_bounds.center).sqrMagnitude;
+		var lhs_extents = lhs_bounds.extents.x;
+		var rhs_extents = rhs_bounds.extents.x;
+		var extents = lhs_extents + rhs_extents;
+		var sqr_extents = extents * extents;
+
+		return sqr_distance < sqr_extents;
 	}
 
 	public static bool IsHit(SphereCollider lhs, CapsuleCollider rhs) {
@@ -394,6 +454,44 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		} else if (null == collider) {
 			throw new System.ArgumentNullException();
 		}
+		return result;
+	}
+
+	private class Axis3d {
+		private Vector3[] axis;
+
+		public Vector3 this[int i] {
+			set{this.axis[i] = value;}
+			get{return this.axis[i];}
+		}
+		public Vector3 right {
+			set{this.axis[0] = value;}
+			get{return this.axis[0];}
+		}
+		public Vector3 up {
+			set{this.axis[1] = value;}
+			get{return this.axis[1];}
+		}
+		public Vector3 forward {
+			set{this.axis[2] = value;}
+			get{return this.axis[2];}
+		}
+		public Axis3d() : this(Vector3.one, Quaternion.identity) {}
+		public Axis3d(Vector3 scale) : this(scale, Quaternion.identity) {}
+		public Axis3d(Quaternion rotation) : this(Vector3.one, rotation) {}
+		public Axis3d(Vector3 scale, Quaternion rotation) {
+			this.axis = new[]{Vector3.right * scale.x, Vector3.up * scale.y, Vector3.forward * scale.z}.Select(x=>rotation * x).ToArray();
+		}
+		public Axis3d(Vector3 right, Vector3 up, Vector3 forward) {
+			this.axis = new[]{right, up, forward}.ToArray();
+		}
+	}
+
+	private static float GetVectorLengthOfProjection(Axis3d axis, Vector3 projection) {
+		float result = Enumerable.Range(0, 3)
+								.Select(x=>Vector3.Dot(projection, axis[x]))
+								.Select(x=>Mathf.Abs(x))
+								.Sum();
 		return result;
 	}
 }

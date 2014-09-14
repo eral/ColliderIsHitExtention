@@ -1,7 +1,23 @@
 ColliderIsHitExtention
 ======================
 
-Unity‚É‚ÄCollider(‚Ærigidbody)‚ğg‚Á‚Ä“–‚½‚è”»’è‚·‚é‚ÆA‚Ç‚¤‚µ‚Ä‚à•¨—ƒGƒ“ƒWƒ“‚Ì‰e‹¿‚ğó‚¯‚Ü‚·B
-‘´ˆ‚Å•¨—ƒGƒ“ƒWƒ“‚Ì‰e‹¿‚ğ”rœ‚·‚éˆ×‚ÉCPU‘¤‚Å©‘O”»’è‚µ‚æ‚¤‚ÆŒ¾‚¤‚à‚Ì‚Å‚·B
-•‰‰×‚Í“xŠO‹‚Æˆ×‚è‚Ü‚·B
+Unityã«ã¦Collider(ã¨rigidbody)ã‚’ä½¿ã£ã¦å½“ãŸã‚Šåˆ¤å®šã™ã‚‹ã¨ã€ã©ã†ã—ã¦ã‚‚ç‰©ç†ã‚¨ãƒ³ã‚¸ãƒ³ã®å½±éŸ¿ã‚’å—ã‘ã¾ã™ã€‚
+å…¶å‡¦ã§ç‰©ç†ã‚¨ãƒ³ã‚¸ãƒ³ã®å½±éŸ¿ã‚’æ’é™¤ã™ã‚‹ç‚ºã«CPUå´ã§è‡ªå‰åˆ¤å®šã—ã‚ˆã†ã¨è¨€ã†ã‚‚ã®ã§ã™ã€‚
+è² è·ã¯åº¦å¤–è¦–ã¨ç‚ºã‚Šã¾ã™ã€‚
 
+|                   |Box|Sphere|Capsule|Character|Mesh|Terrain|Wheel|
+|:-----------------:|:-:|:----:|:-----:|:-------:|:--:|:-----:|:---:|
+|BoxCollider        |âœ“ |      |       |         |    |       |     |
+|SphereCollider     |   |âœ“    |       |         |    |       |     |
+|CapsuleCollider    |   |      |âœ“     |         |    |       |     |
+|CharacterController|   |      |       |         |    |       |     |
+|MeshCollider       |   |      |       |         |    |       |     |
+|TerrainCollider    |   |      |       |         |    |       |     |
+|WheelCollider      |   |      |       |         |    |       |     |
+
+|                 |Box|Circle|Edge|Polygon|
+|:---------------:|:-:|:----:|:--:|:-----:|
+|BoxCollider2D    |   |      |    |       |
+|CircleCollider2D |   |      |    |       |
+|EdgeCollider2D   |   |      |    |       |
+|PolygonCollider2D|   |      |    |       |

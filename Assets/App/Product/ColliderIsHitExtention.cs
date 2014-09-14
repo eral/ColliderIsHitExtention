@@ -197,7 +197,18 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(CapsuleCollider lhs, CapsuleCollider rhs) {
-		return false;
+		var lhs_bounds = lhs.bounds;
+		var rhs_bounds = rhs.bounds;
+		var lhs_ray = GetRayOfCapsule(lhs);
+		var rhs_ray = GetRayOfCapsule(rhs);
+
+		var sqr_distance = GetSqrDistance(lhs_ray, rhs_ray);
+		var lhs_extents = lhs.radius * GetMaxLengthInAxis(lhs_bounds.extents);
+		var rhs_extents = rhs.radius * GetMaxLengthInAxis(rhs_bounds.extents);
+		var extents = lhs_extents + rhs_extents;
+		var sqr_extents = extents * extents;
+
+		return sqr_distance < sqr_extents;
 	}
 
 	public static bool IsHit(CapsuleCollider lhs, CharacterController rhs) {
@@ -487,11 +498,88 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		}
 	}
 
+	private static float GetMaxLengthInAxis(Vector3 src) {
+		return Enumerable.Range(0, 3)
+						.Select(x=>src[x])
+						.Max();
+	}
+
 	private static float GetVectorLengthOfProjection(Axis3d axis, Vector3 projection) {
 		float result = Enumerable.Range(0, 3)
 								.Select(x=>Vector3.Dot(projection, axis[x]))
 								.Select(x=>Mathf.Abs(x))
 								.Sum();
 		return result;
+	}
+
+	private static Ray GetRayOfCapsule(CapsuleCollider src) {
+		var src_transform = src.transform;
+
+		Vector3 origin;
+		switch (src.direction) {
+		case 0:	origin = Vector3.right;		break; //X-Axis
+		case 1:	origin = Vector3.up;		break; //Y-Axis
+		case 2:	origin = Vector3.forward;	break; //Z-Axis
+		default:	throw new System.ArgumentOutOfRangeException();
+		}
+		var length = src.height - src.radius * 2.0f;
+		var direction = src_transform.rotation * Vector3.Scale(origin * length, src_transform.lossyScale);
+		origin = direction * -0.5f + src.bounds.center;
+		return new Ray(origin, direction);
+	}
+
+	private static float GetSqrDistance(Ray lhs, Ray rhs) {
+		var lhs_origin = lhs.origin;
+		var lhs_direction = lhs.direction;
+		var rhs_origin = rhs.origin;
+		var rhs_direction = rhs.direction;
+
+		var between = lhs_origin - rhs_origin;
+		var lhs_sqr_length = lhs_direction.sqrMagnitude;
+		var rhs_sqr_length = rhs_direction.sqrMagnitude;
+
+		if ((0.0f == lhs_sqr_length) || (0.0f == rhs_sqr_length)) {
+			//Point & Point
+			return between.sqrMagnitude;
+		}
+
+		float lhs_progress, rhs_progress;
+		do {
+			var between_of_rhs_projection = Vector3.Dot(rhs_direction, between);
+			if (0.0f == lhs_sqr_length) {
+				//Point & Ray
+				lhs_progress = 0.0f;
+				rhs_progress = Mathf.Clamp01(between_of_rhs_projection / rhs_sqr_length);
+				break;
+			}
+			var between_of_lhs_projection = Vector3.Dot(lhs_direction, between);
+			if (0.0f == rhs_sqr_length) {
+				//Ray & Point
+				lhs_progress = Mathf.Clamp01(-between_of_lhs_projection / lhs_sqr_length);
+				rhs_progress = 0.0f;
+				break;
+			}
+			//Ray & Ray
+			var rhs_of_lhs_projection = Vector3.Dot(lhs_direction, rhs_direction);
+			var denom = lhs_sqr_length * rhs_sqr_length - rhs_of_lhs_projection * rhs_of_lhs_projection;
+			if (0.0f != denom) {
+				lhs_progress = Mathf.Clamp01((rhs_of_lhs_projection * between_of_rhs_projection - between_of_lhs_projection * rhs_sqr_length) / denom);
+			} else {
+				lhs_progress = 0.0f;
+			}
+			var rhs_progress_nom = rhs_of_lhs_projection * lhs_progress + between_of_rhs_projection;
+			if (rhs_progress_nom < 0.0f) {
+				rhs_progress = 0.0f;
+				lhs_progress = Mathf.Clamp01(-between_of_lhs_projection / lhs_sqr_length);
+			} else if (rhs_sqr_length < rhs_progress_nom) {
+				rhs_progress = 1.0f;
+				lhs_progress = Mathf.Clamp01((rhs_of_lhs_projection - between_of_lhs_projection) / lhs_sqr_length);
+			} else {
+				rhs_progress = rhs_progress_nom / rhs_sqr_length;
+			}
+		} while (false);
+		var lhs_position = lhs_origin + lhs_direction * lhs_progress;
+		var rhs_position  = rhs_origin + rhs_direction * rhs_progress;
+		return (lhs_position  - rhs_position).sqrMagnitude;
 	}
 }

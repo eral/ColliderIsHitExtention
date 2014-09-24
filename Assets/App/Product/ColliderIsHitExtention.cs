@@ -128,7 +128,29 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(BoxCollider lhs, SphereCollider rhs) {
-		return false;
+		var lhs_transform = lhs.transform;
+		var lhs_bounds = lhs.bounds;
+		var rhs_bounds = rhs.bounds;
+
+		var distance_axis = lhs_bounds.center - rhs_bounds.center;
+		var lhs_unit_axis = new Axis3d(lhs_transform.rotation);
+		var lhs_extents = Vector3.Scale(lhs.size * 0.5f, lhs_transform.lossyScale);
+		var rhs_extents = rhs_bounds.extents.x;
+		var sqr_rhs_extents = rhs_extents * rhs_extents;
+
+		var sqr_distance_from_box_edge = 0.0f;
+		for (int i = 0, i_max = 3; i < i_max; ++i) {
+			var split_axis = lhs_unit_axis[i];
+			var distance = Mathf.Abs(Vector3.Dot(split_axis, distance_axis));
+			distance -= lhs_extents[i];
+			if (rhs_extents < distance) {
+				//NoHit
+				return false;
+			} else if (0.0f < distance) {
+				sqr_distance_from_box_edge += distance * distance;
+			}
+		}
+		return sqr_distance_from_box_edge < sqr_rhs_extents;
 	}
 
 	public static bool IsHit(BoxCollider lhs, CapsuleCollider rhs) {

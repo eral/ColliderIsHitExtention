@@ -559,6 +559,29 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		return new Ray(origin, direction);
 	}
 
+	private static Vector3 GetNearestPoint(Vector3 lhs, BoxCollider rhs) {
+		var rhs_transform = rhs.transform;
+		var rhs_bounds = rhs.bounds;
+
+		var distance_axis = lhs - rhs_bounds.center;
+		var rhs_unit_axis = new Axis3d(rhs_transform.rotation);
+		var rhs_extents = Vector3.Scale(rhs.size * 0.5f, rhs_transform.lossyScale);
+
+		var result = rhs_bounds.center;
+		for (int i = 0, i_max = 3; i < i_max; ++i) {
+			var distance = Vector3.Dot(rhs_unit_axis[i], distance_axis);
+			distance = Mathf.Clamp(distance, -rhs_extents[i], rhs_extents[i]);
+			result += rhs_unit_axis[i] * distance;
+		}
+		return result;
+	}
+
+	private static float GetSqrDistance(Vector3 lhs, BoxCollider rhs) {
+		var lhs_nearest = GetNearestPoint(lhs, rhs);
+		var distance = lhs_nearest - rhs.bounds.center;
+		return distance.sqrMagnitude;
+	}
+
 	private static float GetSqrDistance(Ray lhs, Ray rhs) {
 		var lhs_origin = lhs.origin;
 		var lhs_direction = lhs.direction;

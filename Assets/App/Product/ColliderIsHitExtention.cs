@@ -87,10 +87,10 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		var rhs_extents = Vector3.Scale(rhs.size * 0.5f, rhs_transform.lossyScale);
 		var rhs_extents_axis = new Axis3d(rhs_extents, rhs_transform.rotation);
 
-		//lhs系分離軸
+		//lhs
 		for (int i = 0, i_max = 3; i < i_max; ++i) {
 			var split_axis = lhs_unit_axis[i];
-			var distance = Mathf.Abs(Vector3.Dot(split_axis, distance_axis));
+			var distance = GetVectorLengthOfProjection(distance_axis, split_axis);
 			distance -= lhs_extents[i];
 			distance -= GetVectorLengthOfProjection(rhs_extents_axis, split_axis);
 			if (0.0f < distance) {
@@ -98,10 +98,10 @@ public class ColliderIsHitExtention : MonoBehaviour {
 				return false;
 			}
 		}
-		//rhs系分離軸
+		//rhs
 		for (int i = 0, i_max = 3; i < i_max; ++i) {
 			var split_axis = rhs_unit_axis[i];
-			var distance = Mathf.Abs(Vector3.Dot(split_axis, distance_axis));
+			var distance = GetVectorLengthOfProjection(distance_axis, split_axis);
 			distance -= GetVectorLengthOfProjection(lhs_extents_axis, split_axis);
 			distance -= rhs_extents[i];
 			if (0.0f < distance) {
@@ -109,11 +109,11 @@ public class ColliderIsHitExtention : MonoBehaviour {
 				return false;
 			}
 		}
-		//第3系分離軸
+		//3rd split axis
 		for (int i = 0, i_max = 3; i < i_max; ++i) {
 			for (int k = 0, k_max = 3; k < k_max; ++k) {
 				var split_axis = Vector3.Cross(lhs_unit_axis[i], rhs_unit_axis[k]);
-				var distance = Mathf.Abs(Vector3.Dot(split_axis, distance_axis));
+				var distance = GetVectorLengthOfProjection(distance_axis, split_axis);
 				distance -= GetVectorLengthOfProjection(lhs_extents_axis, split_axis);
 				distance -= GetVectorLengthOfProjection(rhs_extents_axis, split_axis);
 				if (0.0f < distance) {
@@ -141,7 +141,7 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		var sqr_distance_from_box_edge = 0.0f;
 		for (int i = 0, i_max = 3; i < i_max; ++i) {
 			var split_axis = lhs_unit_axis[i];
-			var distance = Mathf.Abs(Vector3.Dot(split_axis, distance_axis));
+			var distance = GetVectorLengthOfProjection(distance_axis, split_axis);
 			distance -= lhs_extents[i];
 			if (rhs_extents < distance) {
 				//NoHit
@@ -526,6 +526,10 @@ public class ColliderIsHitExtention : MonoBehaviour {
 						.Max();
 	}
 
+	private static float GetVectorLengthOfProjection(Vector3 src, Vector3 projection) {
+		return Mathf.Abs(Vector3.Dot(projection, src));
+	}
+
 	private static float GetVectorLengthOfProjection(Axis3d axis, Vector3 projection) {
 		float result = Enumerable.Range(0, 3)
 								.Select(x=>Vector3.Dot(projection, axis[x]))
@@ -534,16 +538,21 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		return result;
 	}
 
+	private static Vector3 GetDirectionBaseVectorOfCapsule(CapsuleCollider src) {
+		Vector3 result;
+		switch (src.direction) {
+		case 0:	result = Vector3.right;		break; //X-Axis
+		case 1:	result = Vector3.up;		break; //Y-Axis
+		case 2:	result = Vector3.forward;	break; //Z-Axis
+		default:	throw new System.ArgumentOutOfRangeException();
+		}
+		return result;
+	}
+
 	private static Ray GetRayOfCapsule(CapsuleCollider src) {
 		var src_transform = src.transform;
 
-		Vector3 origin;
-		switch (src.direction) {
-		case 0:	origin = Vector3.right;		break; //X-Axis
-		case 1:	origin = Vector3.up;		break; //Y-Axis
-		case 2:	origin = Vector3.forward;	break; //Z-Axis
-		default:	throw new System.ArgumentOutOfRangeException();
-		}
+		Vector3 origin = GetDirectionBaseVectorOfCapsule(src);
 		var length = src.height - src.radius * 2.0f;
 		var direction = src_transform.rotation * Vector3.Scale(origin * length, src_transform.lossyScale);
 		origin = direction * -0.5f + src.bounds.center;

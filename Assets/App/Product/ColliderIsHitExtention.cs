@@ -219,14 +219,14 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(CapsuleCollider lhs, CapsuleCollider rhs) {
-		var lhs_bounds = lhs.bounds;
-		var rhs_bounds = rhs.bounds;
+		var lhs_transform = lhs.transform;
+		var rhs_transform = rhs.transform;
 		var lhs_ray = GetRayOfCapsule(lhs);
 		var rhs_ray = GetRayOfCapsule(rhs);
 
 		var sqr_distance = GetSqrDistance(lhs_ray, rhs_ray);
-		var lhs_extents = lhs.radius * GetMaxLengthInAxis(lhs_bounds.extents);
-		var rhs_extents = rhs.radius * GetMaxLengthInAxis(rhs_bounds.extents);
+		var lhs_extents = lhs.radius * GetMaxLengthInAxis(lhs_transform.lossyScale);
+		var rhs_extents = rhs.radius * GetMaxLengthInAxis(rhs_transform.lossyScale);
 		var extents = lhs_extents + rhs_extents;
 		var sqr_extents = extents * extents;
 

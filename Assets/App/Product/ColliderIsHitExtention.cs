@@ -154,7 +154,85 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(BoxCollider lhs, CapsuleCollider rhs) {
-		return false;
+		var lhs_transform = lhs.transform;
+		var lhs_bounds = lhs.bounds;
+		var rhs_transform = rhs.transform;
+		var rhs_bounds = rhs.bounds;
+
+		var distance_axis = lhs_bounds.center - rhs_bounds.center;
+		var lhs_unit_axis = new Axis3d(lhs_transform.rotation);
+		var lhs_extents = Vector3.Scale(lhs.size * 0.5f, lhs_transform.lossyScale);
+		var lhs_extents_axis = new Axis3d(lhs_extents, lhs_transform.rotation);
+		var rhs_unit_axis = rhs_transform.rotation * GetDirectionBaseVectorOfCapsule(rhs);
+		var rhs_scale = GetMaxLengthInAxis(rhs_transform.lossyScale);
+		var rhs_extents_ray = rhs_unit_axis * (rhs.height - rhs.radius * 2.0f) * 0.5f * rhs_scale;
+		var rhs_extents_radius = rhs.radius * rhs_scale;
+
+		{
+			var rhs_ray = GetRayOfCapsule(rhs);
+			var lhs_nearest = GetNearestPoint(rhs_ray.origin, lhs);
+			var rhs_ray_nearest_progress = Vector3.Dot(rhs_ray.direction, lhs_nearest - rhs_ray.origin) / rhs_ray.direction.sqrMagnitude;
+			var rhs_ray_nearest = rhs_ray.origin + rhs_ray.direction * rhs_ray_nearest_progress;
+	
+			var split_axis = rhs_ray_nearest - lhs_nearest;
+			var distance = GetVectorLengthOfProjection(distance_axis, split_axis);
+			distance -= GetVectorLengthOfProjection(lhs_extents_axis, split_axis);
+			GetVectorLengthOfProjection(rhs_extents_ray, split_axis);
+			distance -= rhs_extents_radius;
+			if (0.0f < distance) {
+				//NoHit
+				return false;
+			}
+		}
+#if false
+		//Box
+		for (int i = 0, i_max = 3; i < i_max; ++i) {
+			var split_axis = lhs_unit_axis[i];
+			var distance = GetVectorLengthOfProjection(distance_axis, split_axis);
+			distance -= lhs_extents[i];
+			distance -= GetVectorLengthOfProjection(rhs_extents_ray, split_axis);
+			distance -= rhs_extents_radius;
+			if (0.0f < distance) {
+				//NoHit
+				return false;
+			}
+		}
+		//2nd split axis
+		for (int i = 0, i_max = 3; i < i_max; ++i) {
+			var split_axis = Vector3.Cross(lhs_unit_axis[i], rhs_unit_axis);
+			var distance = GetVectorLengthOfProjection(distance_axis, split_axis);
+			distance -= GetVectorLengthOfProjection(lhs_extents_axis, split_axis);
+			//"GetVectorLengthOfProjection(rhs_extents_ray, split_axis);" is always 0.0f
+			distance -= rhs_extents_radius;
+			if (0.0f < distance) {
+				//NoHit
+				return false;
+			}
+		}
+		//Hemisphere Test
+		{
+			var sqr_rhs_extents_radius = rhs_extents_radius * rhs_extents_radius;
+			var rhs_ray = GetRayOfCapsule(rhs);
+			var rhs_hemisphere_rays = new[]{new{center=rhs_ray.origin, direction=rhs_ray.direction}
+											, new{center=rhs_ray.origin + rhs_ray.direction, direction=-rhs_ray.direction}
+											};
+			foreach (var rhs_hemisphere_ray in rhs_hemisphere_rays) {
+				var lhs_nearest = GetNearestPoint(rhs_hemisphere_ray.center, lhs);
+				var hemisphere_to_nearest = lhs_nearest - rhs_hemisphere_ray.center;
+				var direction_projection = Vector3.Dot(hemisphere_to_nearest, rhs_hemisphere_ray.direction);
+				if (direction_projection < 0.0f) {
+					var sqr_distance = (hemisphere_to_nearest).sqrMagnitude;
+					if (sqr_rhs_extents_radius < sqr_distance) {
+						//NoHit
+						return false;
+					}
+				}
+			}
+		}
+#endif
+
+		//Hit
+		return true;
 	}
 
 	public static bool IsHit(BoxCollider lhs, CharacterController rhs) {

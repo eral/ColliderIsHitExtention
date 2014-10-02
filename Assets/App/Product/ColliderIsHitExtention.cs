@@ -582,7 +582,7 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		return distance.sqrMagnitude;
 	}
 
-	private static float GetSqrDistance(Ray lhs, Ray rhs) {
+	private static Vector3[] GetNearestPoint(Ray lhs, Ray rhs) {
 		var lhs_origin = lhs.origin;
 		var lhs_direction = lhs.direction;
 		var rhs_origin = rhs.origin;
@@ -592,13 +592,15 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		var lhs_sqr_length = lhs_direction.sqrMagnitude;
 		var rhs_sqr_length = rhs_direction.sqrMagnitude;
 
-		if ((0.0f == lhs_sqr_length) || (0.0f == rhs_sqr_length)) {
-			//Point & Point
-			return between.sqrMagnitude;
-		}
-
 		float lhs_progress, rhs_progress;
 		do {
+			if ((0.0f == lhs_sqr_length) || (0.0f == rhs_sqr_length)) {
+				//Point & Point
+				lhs_progress = 0.0f;
+				rhs_progress = 0.0f;
+				break;
+			}
+
 			var between_of_rhs_projection = Vector3.Dot(rhs_direction, between);
 			if (0.0f == lhs_sqr_length) {
 				//Point & Ray
@@ -633,7 +635,13 @@ public class ColliderIsHitExtention : MonoBehaviour {
 			}
 		} while (false);
 		var lhs_position = lhs_origin + lhs_direction * lhs_progress;
-		var rhs_position  = rhs_origin + rhs_direction * rhs_progress;
-		return (lhs_position  - rhs_position).sqrMagnitude;
+		var rhs_position = rhs_origin + rhs_direction * rhs_progress;
+		return new[]{lhs_position, rhs_position};
+	}
+
+	private static float GetSqrDistance(Ray lhs, Ray rhs) {
+		var nearest_points = GetNearestPoint(lhs, rhs);
+		var distance = nearest_points[0]  - nearest_points[1];
+		return distance.sqrMagnitude;
 	}
 }

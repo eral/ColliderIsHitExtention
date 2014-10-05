@@ -191,7 +191,18 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(SphereCollider lhs, CapsuleCollider rhs) {
-		return false;
+		var lhs_transform = lhs.transform;
+		var lhs_bounds = lhs.bounds;
+		var rhs_transform = rhs.transform;
+		var rhs_ray = GetRayOfCapsule(rhs);
+
+		var sqr_distance = GetSqrDistance(lhs_bounds.center, rhs_ray);
+		var lhs_extents = lhs_bounds.extents.x;
+		var rhs_extents = rhs.radius * GetMaxLengthInAxis(rhs_transform.lossyScale);
+		var extents = lhs_extents + rhs_extents;
+		var sqr_extents = extents * extents;
+
+		return sqr_distance < sqr_extents;
 	}
 
 	public static bool IsHit(SphereCollider lhs, CharacterController rhs) {
@@ -557,6 +568,24 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		var direction = src_transform.rotation * Vector3.Scale(origin * length, src_transform.lossyScale);
 		origin = direction * -0.5f + src.bounds.center;
 		return new Ray(origin, direction);
+	}
+
+	private static Vector3 GetNearestPoint(Vector3 lhs, Ray rhs) {
+		var rhs_origin = rhs.origin;
+		var rhs_direction = rhs.direction;
+
+		var between = lhs - rhs_origin;
+		var rhs_sqr_length = rhs_direction.sqrMagnitude;
+
+		var between_of_rhs_projection = Vector3.Dot(rhs_direction, between);
+		var rhs_progress = Mathf.Clamp01(between_of_rhs_projection / rhs_sqr_length);
+		return rhs_origin + rhs_direction * rhs_progress;
+	}
+
+	private static float GetSqrDistance(Vector3 lhs, Ray rhs) {
+		var rhs_nearest = GetNearestPoint(lhs, rhs);
+		var distance = lhs - rhs_nearest;
+		return distance.sqrMagnitude;
 	}
 
 	private static Vector3 GetNearestPoint(Vector3 lhs, BoxCollider rhs) {

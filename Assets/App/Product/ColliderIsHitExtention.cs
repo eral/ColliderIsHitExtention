@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 using System.Linq;
 
 public class ColliderIsHitExtention : MonoBehaviour {
@@ -154,85 +155,67 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(BoxCollider lhs, CapsuleCollider rhs) {
-		var lhs_transform = lhs.transform;
-		var lhs_bounds = lhs.bounds;
+		var lhs_planes = GetPlaneOfBox(lhs);
 		var rhs_transform = rhs.transform;
-		var rhs_bounds = rhs.bounds;
+		var rhs_ray = GetRayOfCapsule(rhs);
+		var rhs_extents = rhs.radius * GetMaxLengthInAxis(rhs_transform.lossyScale);
 
-		var distance_axis = lhs_bounds.center - rhs_bounds.center;
-		var lhs_unit_axis = new Axis3d(lhs_transform.rotation);
-		var lhs_extents = Vector3.Scale(lhs.size * 0.5f, lhs_transform.lossyScale);
-		var lhs_extents_axis = new Axis3d(lhs_extents, lhs_transform.rotation);
-		var rhs_unit_axis = rhs_transform.rotation * GetDirectionBaseVectorOfCapsule(rhs);
-		var rhs_scale = GetMaxLengthInAxis(rhs_transform.lossyScale);
-		var rhs_extents_ray = rhs_unit_axis * (rhs.height - rhs.radius * 2.0f) * 0.5f * rhs_scale;
-		var rhs_extents_radius = rhs.radius * rhs_scale;
-
-		{
-			var rhs_ray = GetRayOfCapsule(rhs);
-			var lhs_nearest = GetNearestPoint(rhs_ray.origin, lhs);
-			var rhs_ray_nearest_progress = Vector3.Dot(rhs_ray.direction, lhs_nearest - rhs_ray.origin) / rhs_ray.direction.sqrMagnitude;
-			var rhs_ray_nearest = rhs_ray.origin + rhs_ray.direction * rhs_ray_nearest_progress;
-	
-			var split_axis = rhs_ray_nearest - lhs_nearest;
-			var distance = GetVectorLengthOfProjection(distance_axis, split_axis);
-			distance -= GetVectorLengthOfProjection(lhs_extents_axis, split_axis);
-			GetVectorLengthOfProjection(rhs_extents_ray, split_axis);
-			distance -= rhs_extents_radius;
-			if (0.0f < distance) {
-				//NoHit
-				return false;
-			}
-		}
-#if false
-		//Box
-		for (int i = 0, i_max = 3; i < i_max; ++i) {
-			var split_axis = lhs_unit_axis[i];
-			var distance = GetVectorLengthOfProjection(distance_axis, split_axis);
-			distance -= lhs_extents[i];
-			distance -= GetVectorLengthOfProjection(rhs_extents_ray, split_axis);
-			distance -= rhs_extents_radius;
-			if (0.0f < distance) {
-				//NoHit
-				return false;
-			}
-		}
-		//2nd split axis
-		for (int i = 0, i_max = 3; i < i_max; ++i) {
-			var split_axis = Vector3.Cross(lhs_unit_axis[i], rhs_unit_axis);
-			var distance = GetVectorLengthOfProjection(distance_axis, split_axis);
-			distance -= GetVectorLengthOfProjection(lhs_extents_axis, split_axis);
-			//"GetVectorLengthOfProjection(rhs_extents_ray, split_axis);" is always 0.0f
-			distance -= rhs_extents_radius;
-			if (0.0f < distance) {
-				//NoHit
-				return false;
-			}
-		}
-		//Hemisphere Test
-		{
-			var sqr_rhs_extents_radius = rhs_extents_radius * rhs_extents_radius;
-			var rhs_ray = GetRayOfCapsule(rhs);
-			var rhs_hemisphere_rays = new[]{new{center=rhs_ray.origin, direction=rhs_ray.direction}
-											, new{center=rhs_ray.origin + rhs_ray.direction, direction=-rhs_ray.direction}
-											};
-			foreach (var rhs_hemisphere_ray in rhs_hemisphere_rays) {
-				var lhs_nearest = GetNearestPoint(rhs_hemisphere_ray.center, lhs);
-				var hemisphere_to_nearest = lhs_nearest - rhs_hemisphere_ray.center;
-				var direction_projection = Vector3.Dot(hemisphere_to_nearest, rhs_hemisphere_ray.direction);
-				if (direction_projection < 0.0f) {
-					var sqr_distance = (hemisphere_to_nearest).sqrMagnitude;
-					if (sqr_rhs_extents_radius < sqr_distance) {
-						//NoHit
-						return false;
-					}
+		//Planes & Point
+		var points = new[]{rhs_ray.origin, rhs_ray.origin + rhs_ray.direction};
+		foreach (var point in points) {
+			var sign_distances = lhs_planes.Select(x=>GetSignDistance(point, x)).ToArray();
+			var axis_region = Enumerable.Range(0, sign_distances.Length / 2)
+										.Select(x=>x * 2)
+										.Select(x=>sign_distances[x] * sign_distances[x+1])
+										.ToArray();
+			var voronoi_kind = Enumerable.Range(0, axis_region.Length)
+										.Select(x=>((0.0f <= axis_region[x])? 1<<x: 0))
+										.Sum();	
+										
+			switch (voronoi_kind) {
+			case ((1<<0) + (1<<1) + (1<<2)): //Hit
+				return true;
+			case ((0<<0) + (1<<1) + (1<<2)): //X-axis plane near
+				if (Enumerable.Range(0, 2)
+								.Select(x=>sign_distances[x])
+								.Any(x=>((0.0f<=x)&&(x<=rhs_extents)))) {
+					return true;
 				}
+				break;
+			case ((1<<0) + (0<<1) + (1<<2)): //Y-axis plane near
+				if (Enumerable.Range(2, 2)
+								.Select(x=>sign_distances[x])
+								.Any(x=>((0.0f<=x)&&(x<=rhs_extents)))) {
+					return true;
+				}
+				break;
+			case ((1<<0) + (1<<1) + (0<<2)): //Z-axis plane near
+				if (Enumerable.Range(4, 2)
+								.Select(x=>sign_distances[x])
+								.Any(x=>((0.0f<=x)&&(x<=rhs_extents)))) {
+					return true;
+				}
+				break;
+			default:
+				//empty.
+				break;
 			}
 		}
-#endif
+	
+		//Ray & Ray or Ray & Point
+		var lhs_rays = GetRaysOfBox(lhs);
+		var sqr_rhs_extents = rhs_extents * rhs_extents;
+		
+		foreach (var lhs_ray in lhs_rays) {
+			var ray_sqr_distance = GetSqrDistance(lhs_ray, rhs_ray);
+			if (ray_sqr_distance < sqr_rhs_extents) {
+				//Hit
+				return true;
+			}
+		}
 
-		//Hit
-		return true;
+		//NoHit
+		return false;
 	}
 
 	public static bool IsHit(BoxCollider lhs, CharacterController rhs) {
@@ -637,6 +620,82 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		}
 		return result;
 	}
+
+	private static Vector3[] GetVerticesOfBox(BoxCollider src) {
+		var src_transform = src.transform;
+		var src_bounds = src.bounds;
+		var axis_size = new Axis3d(Vector3.Scale(src.size, src_transform.lossyScale), src_transform.rotation);
+		var min_point = src_bounds.center - axis_size.right * 0.5f - axis_size.up * 0.5f - axis_size.forward * 0.5f;
+
+		var result = new Vector3[8];
+		for (int i = 0, i_max = result.Length; i < i_max; ++i) {
+			result[i] = min_point;
+			if (0 != (i & 0x01)) result[i] += axis_size.right;
+			if (0 != (i & 0x02)) result[i] += axis_size.up;
+			if (0 != (i & 0x04)) result[i] += axis_size.forward;
+		}
+		return result;
+	}
+
+	private static Ray[] GetRaysOfBox(BoxCollider src) {
+		var vertices = GetVerticesOfBox(src);
+
+		Vector3 direction;
+		var result = new Ray[12];
+		//x
+		direction = vertices[1] - vertices[0];
+		result[0] = new Ray(vertices[0], direction);
+		result[1] = new Ray(vertices[2], direction);
+		result[2] = new Ray(vertices[4], direction);
+		result[3] = new Ray(vertices[6], direction);
+		//y
+		direction = vertices[2] - vertices[0];
+		result[4] = new Ray(vertices[0], direction);
+		result[5] = new Ray(vertices[1], direction);
+		result[6] = new Ray(vertices[4], direction);
+		result[7] = new Ray(vertices[5], direction);
+		//z
+		direction = vertices[4] - vertices[0];
+		result[8] = new Ray(vertices[0], direction);
+		result[9] = new Ray(vertices[1], direction);
+		result[10]= new Ray(vertices[2], direction);
+		result[11]= new Ray(vertices[3], direction);
+
+		return result;
+	}
+
+	struct Plane {
+		public Vector3 orign;
+		public Vector3 normal;
+
+		public Plane(Vector3 orign, Vector3 normal) {
+			this.orign = orign;
+			this.normal = normal;
+		}
+	}
+
+	private static float GetSignDistance(Vector3 lhs, Plane rhs) {
+		return Vector3.Dot(rhs.normal, lhs - rhs.orign);
+	}
+	private static Vector3 GetNearestPoint(Vector3 lhs, Plane rhs) {
+		return lhs - rhs.normal * GetSignDistance(lhs, rhs);
+	}
+	private static Plane[] GetPlaneOfBox(BoxCollider src) {
+		var src_transform = src.transform;
+		var src_bounds = src.bounds;
+		var axis_unit = new Axis3d(src_transform.rotation);
+		var axis_size = new Axis3d(Vector3.Scale(src.size * 0.5f, src_transform.lossyScale), src_transform.rotation);
+
+		var result = new Plane[6];
+		result[0] = new Plane(src_bounds.center + axis_size.right,  axis_unit.right);
+		result[1] = new Plane(src_bounds.center - axis_size.right, -axis_unit.right);
+		result[2] = new Plane(src_bounds.center + axis_size.up,  axis_unit.up);
+		result[3] = new Plane(src_bounds.center - axis_size.up, -axis_unit.up);
+		result[4] = new Plane(src_bounds.center + axis_size.forward,  axis_unit.forward);
+		result[5] = new Plane(src_bounds.center - axis_size.forward, -axis_unit.forward);
+		return result;
+	}
+	
 
 	private static Ray GetRayOfCapsule(CapsuleCollider src) {
 		var src_transform = src.transform;

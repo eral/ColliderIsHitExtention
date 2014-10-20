@@ -252,7 +252,6 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(SphereCollider lhs, CapsuleCollider rhs) {
-		var lhs_transform = lhs.transform;
 		var lhs_bounds = lhs.bounds;
 		var rhs_transform = rhs.transform;
 		var rhs_segment = GetSegmentOfCapsule(rhs);

@@ -157,11 +157,11 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	public static bool IsHit(BoxCollider lhs, CapsuleCollider rhs) {
 		var lhs_planes = GetPlaneOfBox(lhs);
 		var rhs_transform = rhs.transform;
-		var rhs_ray = GetRayOfCapsule(rhs);
+		var rhs_segment = GetSegmentOfCapsule(rhs);
 		var rhs_extents = rhs.radius * GetMaxLengthInAxis(rhs_transform.lossyScale);
 
 		//Plane & Point
-		var points = new[]{rhs_ray.origin, rhs_ray.origin + rhs_ray.direction};
+		var points = new[]{rhs_segment.origin, rhs_segment.origin + rhs_segment.direction};
 		foreach (var point in points) {
 			var sign_distances = lhs_planes.Select(x=>GetSignDistance(point, x)).ToArray();
 			var axis_region = Enumerable.Range(0, sign_distances.Length / 2)
@@ -202,13 +202,13 @@ public class ColliderIsHitExtention : MonoBehaviour {
 			}
 		}
 	
-		//Ray & Ray or Ray & Point
-		var lhs_rays = GetSidesOfBox(lhs);
+		//Segment & Segment or Segment & Point
+		var lhs_segments = GetSidesOfBox(lhs);
 		var sqr_rhs_extents = rhs_extents * rhs_extents;
 		
-		foreach (var lhs_ray in lhs_rays) {
-			var ray_sqr_distance = GetSqrDistance(lhs_ray, rhs_ray);
-			if (ray_sqr_distance < sqr_rhs_extents) {
+		foreach (var lhs_segment in lhs_segments) {
+			var segment_sqr_distance = GetSqrDistance(lhs_segment, rhs_segment);
+			if (segment_sqr_distance < sqr_rhs_extents) {
 				//Hit
 				return true;
 			}
@@ -255,9 +255,9 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		var lhs_transform = lhs.transform;
 		var lhs_bounds = lhs.bounds;
 		var rhs_transform = rhs.transform;
-		var rhs_ray = GetRayOfCapsule(rhs);
+		var rhs_segment = GetSegmentOfCapsule(rhs);
 
-		var sqr_distance = GetSqrDistance(lhs_bounds.center, rhs_ray);
+		var sqr_distance = GetSqrDistance(lhs_bounds.center, rhs_segment);
 		var lhs_extents = lhs_bounds.extents.x;
 		var rhs_extents = rhs.radius * GetMaxLengthInAxis(rhs_transform.lossyScale);
 		var extents = lhs_extents + rhs_extents;
@@ -293,10 +293,10 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	public static bool IsHit(CapsuleCollider lhs, CapsuleCollider rhs) {
 		var lhs_transform = lhs.transform;
 		var rhs_transform = rhs.transform;
-		var lhs_ray = GetRayOfCapsule(lhs);
-		var rhs_ray = GetRayOfCapsule(rhs);
+		var lhs_segment = GetSegmentOfCapsule(lhs);
+		var rhs_segment = GetSegmentOfCapsule(rhs);
 
-		var sqr_distance = GetSqrDistance(lhs_ray, rhs_ray);
+		var sqr_distance = GetSqrDistance(lhs_segment, rhs_segment);
 		var lhs_extents = lhs.radius * GetMaxLengthInAxis(lhs_transform.lossyScale);
 		var rhs_extents = rhs.radius * GetMaxLengthInAxis(rhs_transform.lossyScale);
 		var extents = lhs_extents + rhs_extents;
@@ -563,21 +563,21 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	struct Segment {
-		public Vector3 orign;
+		public Vector3 origin;
 		public Vector3 direction;
 
-		public Segment(Vector3 orign, Vector3 direction) {
-			this.orign = orign;
+		public Segment(Vector3 origin, Vector3 direction) {
+			this.origin = origin;
 			this.direction = direction;
 		}
 	}
 
 	struct Plane {
-		public Vector3 orign;
+		public Vector3 origin;
 		public Vector3 normal;
 
-		public Plane(Vector3 orign, Vector3 normal) {
-			this.orign = orign;
+		public Plane(Vector3 origin, Vector3 normal) {
+			this.origin = origin;
 			this.normal = normal;
 		}
 	}
@@ -657,35 +657,35 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		return result;
 	}
 
-	private static Ray[] GetSidesOfBox(BoxCollider src) {
+	private static Segment[] GetSidesOfBox(BoxCollider src) {
 		var vertices = GetVerticesOfBox(src);
 
 		Vector3 direction;
-		var result = new Ray[12];
+		var result = new Segment[12];
 		//x
 		direction = vertices[1] - vertices[0];
-		result[0] = new Ray(vertices[0], direction);
-		result[1] = new Ray(vertices[2], direction);
-		result[2] = new Ray(vertices[4], direction);
-		result[3] = new Ray(vertices[6], direction);
+		result[0] = new Segment(vertices[0], direction);
+		result[1] = new Segment(vertices[2], direction);
+		result[2] = new Segment(vertices[4], direction);
+		result[3] = new Segment(vertices[6], direction);
 		//y
 		direction = vertices[2] - vertices[0];
-		result[4] = new Ray(vertices[0], direction);
-		result[5] = new Ray(vertices[1], direction);
-		result[6] = new Ray(vertices[4], direction);
-		result[7] = new Ray(vertices[5], direction);
+		result[4] = new Segment(vertices[0], direction);
+		result[5] = new Segment(vertices[1], direction);
+		result[6] = new Segment(vertices[4], direction);
+		result[7] = new Segment(vertices[5], direction);
 		//z
 		direction = vertices[4] - vertices[0];
-		result[8] = new Ray(vertices[0], direction);
-		result[9] = new Ray(vertices[1], direction);
-		result[10]= new Ray(vertices[2], direction);
-		result[11]= new Ray(vertices[3], direction);
+		result[8] = new Segment(vertices[0], direction);
+		result[9] = new Segment(vertices[1], direction);
+		result[10]= new Segment(vertices[2], direction);
+		result[11]= new Segment(vertices[3], direction);
 
 		return result;
 	}
 
 	private static float GetSignDistance(Vector3 lhs, Plane rhs) {
-		return Vector3.Dot(rhs.normal, lhs - rhs.orign);
+		return Vector3.Dot(rhs.normal, lhs - rhs.origin);
 	}
 
 	private static Vector3 GetNearestPoint(Vector3 lhs, Plane rhs) {
@@ -709,17 +709,17 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 	
 
-	private static Ray GetRayOfCapsule(CapsuleCollider src) {
+	private static Segment GetSegmentOfCapsule(CapsuleCollider src) {
 		var src_transform = src.transform;
 
 		Vector3 origin = GetDirectionBaseVectorOfCapsule(src);
 		var length = src.height - src.radius * 2.0f;
 		var direction = src_transform.rotation * Vector3.Scale(origin * length, src_transform.lossyScale);
 		origin = direction * -0.5f + src.bounds.center;
-		return new Ray(origin, direction);
+		return new Segment(origin, direction);
 	}
 
-	private static Vector3 GetNearestPoint(Vector3 lhs, Ray rhs) {
+	private static Vector3 GetNearestPoint(Vector3 lhs, Segment rhs) {
 		var rhs_origin = rhs.origin;
 		var rhs_direction = rhs.direction;
 
@@ -731,7 +731,7 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		return rhs_origin + rhs_direction * rhs_progress;
 	}
 
-	private static float GetSqrDistance(Vector3 lhs, Ray rhs) {
+	private static float GetSqrDistance(Vector3 lhs, Segment rhs) {
 		var rhs_nearest = GetNearestPoint(lhs, rhs);
 		var distance = lhs - rhs_nearest;
 		return distance.sqrMagnitude;
@@ -760,7 +760,7 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		return distance.sqrMagnitude;
 	}
 
-	private static Vector3[] GetNearestPoint(Ray lhs, Ray rhs) {
+	private static Vector3[] GetNearestPoint(Segment lhs, Segment rhs) {
 		var lhs_origin = lhs.origin;
 		var lhs_direction = lhs.direction;
 		var rhs_origin = rhs.origin;
@@ -781,19 +781,19 @@ public class ColliderIsHitExtention : MonoBehaviour {
 
 			var between_of_rhs_projection = Vector3.Dot(rhs_direction, between);
 			if (0.0f == lhs_sqr_length) {
-				//Point & Ray
+				//Point & Segment
 				lhs_progress = 0.0f;
 				rhs_progress = Mathf.Clamp01(between_of_rhs_projection / rhs_sqr_length);
 				break;
 			}
 			var between_of_lhs_projection = Vector3.Dot(lhs_direction, between);
 			if (0.0f == rhs_sqr_length) {
-				//Ray & Point
+				//Segment & Point
 				lhs_progress = Mathf.Clamp01(-between_of_lhs_projection / lhs_sqr_length);
 				rhs_progress = 0.0f;
 				break;
 			}
-			//Ray & Ray
+			//Segment & Segment
 			var rhs_of_lhs_projection = Vector3.Dot(lhs_direction, rhs_direction);
 			var denom = lhs_sqr_length * rhs_sqr_length - rhs_of_lhs_projection * rhs_of_lhs_projection;
 			if (0.0f != denom) {
@@ -817,7 +817,7 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		return new[]{lhs_position, rhs_position};
 	}
 
-	private static float GetSqrDistance(Ray lhs, Ray rhs) {
+	private static float GetSqrDistance(Segment lhs, Segment rhs) {
 		var nearest_points = GetNearestPoint(lhs, rhs);
 		var distance = nearest_points[0]  - nearest_points[1];
 		return distance.sqrMagnitude;

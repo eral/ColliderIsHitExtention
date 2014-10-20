@@ -160,7 +160,7 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		var rhs_ray = GetRayOfCapsule(rhs);
 		var rhs_extents = rhs.radius * GetMaxLengthInAxis(rhs_transform.lossyScale);
 
-		//Planes & Point
+		//Plane & Point
 		var points = new[]{rhs_ray.origin, rhs_ray.origin + rhs_ray.direction};
 		foreach (var point in points) {
 			var sign_distances = lhs_planes.Select(x=>GetSignDistance(point, x)).ToArray();
@@ -203,7 +203,7 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		}
 	
 		//Ray & Ray or Ray & Point
-		var lhs_rays = GetRaysOfBox(lhs);
+		var lhs_rays = GetSidesOfBox(lhs);
 		var sqr_rhs_extents = rhs_extents * rhs_extents;
 		
 		foreach (var lhs_ray in lhs_rays) {
@@ -562,6 +562,26 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		return result;
 	}
 
+	struct Segment {
+		public Vector3 orign;
+		public Vector3 direction;
+
+		public Segment(Vector3 orign, Vector3 direction) {
+			this.orign = orign;
+			this.direction = direction;
+		}
+	}
+
+	struct Plane {
+		public Vector3 orign;
+		public Vector3 normal;
+
+		public Plane(Vector3 orign, Vector3 normal) {
+			this.orign = orign;
+			this.normal = normal;
+		}
+	}
+
 	private class Axis3d {
 		private Vector3[] axis;
 
@@ -625,7 +645,7 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		var src_transform = src.transform;
 		var src_bounds = src.bounds;
 		var axis_size = new Axis3d(Vector3.Scale(src.size, src_transform.lossyScale), src_transform.rotation);
-		var min_point = src_bounds.center - axis_size.right * 0.5f - axis_size.up * 0.5f - axis_size.forward * 0.5f;
+		var min_point = src_bounds.center - (axis_size.right + axis_size.up + axis_size.forward) * 0.5f;
 
 		var result = new Vector3[8];
 		for (int i = 0, i_max = result.Length; i < i_max; ++i) {
@@ -637,7 +657,7 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		return result;
 	}
 
-	private static Ray[] GetRaysOfBox(BoxCollider src) {
+	private static Ray[] GetSidesOfBox(BoxCollider src) {
 		var vertices = GetVerticesOfBox(src);
 
 		Vector3 direction;
@@ -664,22 +684,14 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		return result;
 	}
 
-	struct Plane {
-		public Vector3 orign;
-		public Vector3 normal;
-
-		public Plane(Vector3 orign, Vector3 normal) {
-			this.orign = orign;
-			this.normal = normal;
-		}
-	}
-
 	private static float GetSignDistance(Vector3 lhs, Plane rhs) {
 		return Vector3.Dot(rhs.normal, lhs - rhs.orign);
 	}
+
 	private static Vector3 GetNearestPoint(Vector3 lhs, Plane rhs) {
 		return lhs - rhs.normal * GetSignDistance(lhs, rhs);
 	}
+
 	private static Plane[] GetPlaneOfBox(BoxCollider src) {
 		var src_transform = src.transform;
 		var src_bounds = src.bounds;

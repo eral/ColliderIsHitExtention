@@ -7,9 +7,9 @@ UnityにてCollider(とrigidbody)を使って当たり判定すると、どう�
 
 |                   |Box|Sphere|Capsule|Character|Mesh|Terrain|Wheel|
 |:-----------------:|:-:|:----:|:-----:|:-------:|:--:|:-----:|:---:|
-|BoxCollider        |✓ |✓    |       |         |    |       |     |
+|BoxCollider        |✓ |✓    |✓     |         |    |       |     |
 |SphereCollider     |✓ |✓    |✓     |         |    |       |     |
-|CapsuleCollider    |   |✓    |✓     |         |    |       |     |
+|CapsuleCollider    |✓ |✓    |✓     |         |    |       |     |
 |CharacterController|   |      |       |         |    |       |     |
 |MeshCollider       |   |      |       |         |    |       |     |
 |TerrainCollider    |   |      |       |         |    |       |     |

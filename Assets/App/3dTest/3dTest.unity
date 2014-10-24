@@ -6763,7 +6763,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &798722297
 Transform:
   m_ObjectHideFlags: 2
@@ -7128,7 +7128,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &823641319
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8883,7 +8883,7 @@ GameObject:
   - 114: {fileID: 1081167641}
   - 114: {fileID: 1081167640}
   m_Layer: 0
-  m_Name: Scale4_Hit
+  m_Name: Convex_Hit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10667,7 +10667,7 @@ GameObject:
   - 114: {fileID: 1336319273}
   - 114: {fileID: 1336319272}
   m_Layer: 0
-  m_Name: Scale3_Hit
+  m_Name: Connotation_Hit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11220,7 +11220,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1437093572
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11996,7 +11996,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1506090411
 MonoBehaviour:
   m_ObjectHideFlags: 0

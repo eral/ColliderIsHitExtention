@@ -441,7 +441,39 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(BoxCollider2D lhs, BoxCollider2D rhs) {
-		return false;
+		var lhs_bounds = lhs.bounds;
+		var rhs_bounds = rhs.bounds;
+
+		var distance_axis = new Vector2(lhs_bounds.center.x, lhs_bounds.center.y) - new Vector2(rhs_bounds.center.x, rhs_bounds.center.y);
+		var lhs_extents_axis = GetExtentsAxisOfBox(lhs);
+		var rhs_extents_axis = GetExtentsAxisOfBox(rhs);
+
+		//lhs right angle
+		for (int i = 0, i_max = 2; i < i_max; ++i) {
+			var split_axis = Vector2Angle(lhs_extents_axis[i], 90.0f).normalized;
+			var distance = GetVectorLengthOfProjection(distance_axis, split_axis);
+			distance -= GetVectorLengthOfProjection(lhs_extents_axis, split_axis);
+			distance -= GetVectorLengthOfProjection(rhs_extents_axis, split_axis);
+			if (0.0f < distance) {
+				//NoHit
+				return false;
+			}
+		}
+
+		//rhs right angle
+		for (int i = 0, i_max = 2; i < i_max; ++i) {
+			var split_axis = Vector2Angle(rhs_extents_axis[i], 90.0f).normalized;
+			var distance = GetVectorLengthOfProjection(distance_axis, split_axis);
+			distance -= GetVectorLengthOfProjection(lhs_extents_axis, split_axis);
+			distance -= GetVectorLengthOfProjection(rhs_extents_axis, split_axis);
+			if (0.0f < distance) {
+				//NoHit
+				return false;
+			}
+		}
+
+		//Hit
+		return true;
 	}
 
 	public static bool IsHit(BoxCollider2D lhs, CircleCollider2D rhs) {
@@ -825,5 +857,72 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		var nearest_points = GetNearestPoint(lhs, rhs);
 		var distance = nearest_points[0]  - nearest_points[1];
 		return distance.sqrMagnitude;
+	}
+
+	private class Axis2d {
+		private Vector2[] axis;
+
+		public Vector2 this[int i] {
+			set{this.axis[i] = value;}
+			get{return this.axis[i];}
+		}
+		public Vector2 right {
+			set{this.axis[0] = value;}
+			get{return this.axis[0];}
+		}
+		public Vector2 up {
+			set{this.axis[1] = value;}
+			get{return this.axis[1];}
+		}
+		public Axis2d() : this(Vector2.one, 0.0f) {}
+		public Axis2d(Vector2 scale) : this(scale, 0.0f) {}
+		public Axis2d(float rotation) : this(Vector2.one, rotation) {}
+		public Axis2d(Vector2 scale, float rotation) {
+			this.axis = new[]{Vector2.right * scale.x, Vector2.up * scale.y}.Select(x=>Vector2Angle(x, rotation)).ToArray();
+		}
+		public Axis2d(Vector2 right, Vector2 up) {
+			this.axis = new[]{right, up}.ToArray();
+		}
+	}
+
+	private static Vector2 Vector2Angle(Vector2 src, float rotation) {
+		var result_3d = Quaternion.AngleAxis(rotation, Vector3.forward) * src;
+		return new Vector2(result_3d.x, result_3d.y);
+	}
+
+	private static float GetVectorLengthOfProjection(Vector2 src, Vector2 projection) {
+		return Mathf.Abs(Vector2.Dot(projection, src));
+	}
+
+	private static float GetVectorLengthOfProjection(Axis2d axis, Vector2 projection) {
+		float result = Enumerable.Range(0, 2)
+								.Select(x=>GetVectorLengthOfProjection(projection, axis[x]))
+								.Sum();
+		return result;
+	}
+
+	private static Vector2[] GetVerticesOfBox(BoxCollider2D src) {
+		var matrix = src.transform.localToWorldMatrix;
+		var min_point = src.center - src.size * 0.5f;
+
+		var local_position = new Vector2[4];
+		for (int i = 0, i_max = local_position.Length; i < i_max; ++i) {
+			local_position[i] = min_point;
+			if (0 != (i & 0x01)) local_position[i].x += src.size.x;
+			if (0 != (i & 0x02)) local_position[i].y += src.size.y;
+		}
+		var result = local_position.Select(x=>matrix.MultiplyPoint3x4(x))
+									.Select(x=>new Vector2(x.x, x.y))
+									.ToArray();
+		return result;
+	}
+
+	private static Axis2d GetExtentsAxisOfBox(BoxCollider2D src) {
+		var vertices = GetVerticesOfBox(src);
+
+		var directions = new[]{vertices[1] - vertices[0], vertices[2] - vertices[0]};
+		var extents = directions.Select(x=>x * 0.5f)
+								.ToArray();
+		return new Axis2d(extents[0], extents[1]);
 	}
 }

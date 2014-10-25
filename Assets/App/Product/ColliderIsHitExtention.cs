@@ -493,7 +493,16 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(CircleCollider2D lhs, CircleCollider2D rhs) {
-		return false;
+		var lhs_bounds = lhs.bounds;
+		var rhs_bounds = rhs.bounds;
+
+		var sqr_distance = (lhs_bounds.center - rhs_bounds.center).sqrMagnitude;
+		var lhs_extents = lhs_bounds.extents.x;
+		var rhs_extents = rhs_bounds.extents.x;
+		var extents = lhs_extents + rhs_extents;
+		var sqr_extents = extents * extents;
+
+		return sqr_distance < sqr_extents;
 	}
 
 	public static bool IsHit(CircleCollider2D lhs, EdgeCollider2D rhs) {

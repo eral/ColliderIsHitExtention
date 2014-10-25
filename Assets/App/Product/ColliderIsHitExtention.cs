@@ -444,7 +444,7 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		var lhs_bounds = lhs.bounds;
 		var rhs_bounds = rhs.bounds;
 
-		var distance_axis = new Vector2(lhs_bounds.center.x, lhs_bounds.center.y) - new Vector2(rhs_bounds.center.x, rhs_bounds.center.y);
+		var distance_axis = (Vector2)lhs_bounds.center - (Vector2)rhs_bounds.center;
 		var lhs_extents_axis = GetExtentsAxisOfBox(lhs);
 		var rhs_extents_axis = GetExtentsAxisOfBox(rhs);
 
@@ -886,8 +886,7 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	private static Vector2 Vector2Angle(Vector2 src, float rotation) {
-		var result_3d = Quaternion.AngleAxis(rotation, Vector3.forward) * src;
-		return new Vector2(result_3d.x, result_3d.y);
+		return (Vector2)(Quaternion.AngleAxis(rotation, Vector3.forward) * src);
 	}
 
 	private static float GetVectorLengthOfProjection(Vector2 src, Vector2 projection) {
@@ -911,8 +910,7 @@ public class ColliderIsHitExtention : MonoBehaviour {
 			if (0 != (i & 0x01)) local_position[i].x += src.size.x;
 			if (0 != (i & 0x02)) local_position[i].y += src.size.y;
 		}
-		var result = local_position.Select(x=>matrix.MultiplyPoint3x4(x))
-									.Select(x=>new Vector2(x.x, x.y))
+		var result = local_position.Select(x=>(Vector2)matrix.MultiplyPoint3x4(x))
 									.ToArray();
 		return result;
 	}

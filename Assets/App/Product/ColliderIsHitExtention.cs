@@ -669,8 +669,7 @@ public class ColliderIsHitExtention : MonoBehaviour {
 
 	private static float GetVectorLengthOfProjection(Axis3d axis, Vector3 projection) {
 		float result = Enumerable.Range(0, 3)
-								.Select(x=>Vector3.Dot(projection, axis[x]))
-								.Select(x=>Mathf.Abs(x))
+								.Select(x=>GetVectorLengthOfProjection(projection, axis[x]))
 								.Sum();
 		return result;
 	}

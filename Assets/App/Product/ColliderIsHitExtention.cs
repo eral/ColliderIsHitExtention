@@ -944,20 +944,29 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		return new Axis2d(extents[0], extents[1]);
 	}
 
-	private static float GetSqrDistance(Vector2 lhs, IEnumerable<Vector2> rhs_vertices_counterclockwise) {
+	private static Vector2 GetNearestPoint(Vector2 lhs, IEnumerable<Vector2> rhs_vertices_counterclockwise) {
 		switch (rhs_vertices_counterclockwise.Count()) {
 		case 0:
 			throw new System.ArgumentException();
 		case 1:
-			return (rhs_vertices_counterclockwise.First() - lhs).sqrMagnitude;
+			return rhs_vertices_counterclockwise.First();
 		case 2:
-			{ //Segment2 & point
-				//TODO: Implement
-				throw new System.NotImplementedException();
+			{ //Segment & Point
+				var rhs_vertices = rhs_vertices_counterclockwise.ToArray();
+				var rhs_segment = rhs_vertices[1] - rhs_vertices[0];
+				var lhs_rhs0 = lhs - rhs_vertices[1];
+				var progress = Vector2.Dot(rhs_segment, lhs_rhs0) / rhs_segment.sqrMagnitude;
+				return rhs_vertices[0] + rhs_segment * progress;
 			}
 		default:
-			return GetSqrDistanceConvexPolygon(lhs, rhs_vertices_counterclockwise);
+			return GetNearestPointConvexPolygon(lhs, rhs_vertices_counterclockwise);
 		}
+	}
+
+	private static float GetSqrDistance(Vector2 lhs, IEnumerable<Vector2> rhs_vertices_counterclockwise) {
+		var rhs_nearest = GetNearestPoint(lhs, rhs_vertices_counterclockwise);
+		var distance = lhs - rhs_nearest;
+		return distance.sqrMagnitude;
 	}
 
 	private static Vector2 GetNearestPointConvexPolygon(Vector2 lhs, IEnumerable<Vector2> rhs_vertices_counterclockwise) {

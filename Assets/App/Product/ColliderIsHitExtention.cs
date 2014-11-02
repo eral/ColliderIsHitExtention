@@ -175,7 +175,7 @@ public class ColliderIsHitExtention : MonoBehaviour {
 										.ToArray();
 			var voronoi_kind = Enumerable.Range(0, axis_region.Length)
 										.Select(x=>((0.0f <= axis_region[x])? 1<<x: 0))
-										.Sum();	
+										.Sum();
 										
 			switch (voronoi_kind) {
 			case ((1<<0) + (1<<1) + (1<<2)): //Hit
@@ -987,10 +987,10 @@ public class ColliderIsHitExtention : MonoBehaviour {
 			if (0.0f <= dot_value) {
 				if (Vector2PrepDot(next_crnt, lhs_crnt) <= 0.0f) {
 					//out
-					var line_sqr_length = next_crnt.sqrMagnitude;
-					if (dot_value <= line_sqr_length) {
+					var next_crnt_sqr_length = next_crnt.sqrMagnitude;
+					if (dot_value <= next_crnt_sqr_length) {
 						//Segment & Point
-						var progress = dot_value / line_sqr_length;
+						var progress = dot_value / next_crnt_sqr_length;
 						return crnt_vertex + next_crnt * progress;
 					} else {
 						doubt_vertex_nearest = true;

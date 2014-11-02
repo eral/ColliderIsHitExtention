@@ -477,7 +477,15 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(BoxCollider2D lhs, CircleCollider2D rhs) {
-		return false;
+		var lhs_vertices = GetVerticesOfBox(lhs);
+		var rhs_bounds = rhs.bounds;
+		var rhs_extents = rhs_bounds.extents.x;
+		var sqr_rhs_extents = rhs_extents * rhs_extents;
+
+		var lhs_vertices_clockwise = new[]{lhs_vertices[0], lhs_vertices[1], lhs_vertices[3], lhs_vertices[2]};
+		var sqr_distances = GetSqrDistance(rhs_bounds.center, lhs_vertices_clockwise);
+
+		return sqr_distances < sqr_rhs_extents;
 	}
 
 	public static bool IsHit(BoxCollider2D lhs, EdgeCollider2D rhs) {
@@ -897,6 +905,10 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		return (Vector2)(Quaternion.AngleAxis(rotation, Vector3.forward) * src);
 	}
 
+	private static float Vector2PrepDot(Vector2 lhs, Vector2 rhs) {
+		return Vector2.Dot(new Vector2(-lhs.y, lhs.x), rhs);
+	}
+
 	private static float GetVectorLengthOfProjection(Vector2 src, Vector2 projection) {
 		return Mathf.Abs(Vector2.Dot(projection, src));
 	}
@@ -930,5 +942,82 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		var extents = directions.Select(x=>x * 0.5f)
 								.ToArray();
 		return new Axis2d(extents[0], extents[1]);
+	}
+
+	private static Vector2 GetNearestPoint(Vector2 lhs, IEnumerable<Vector2> rhs_vertices_counterclockwise) {
+		switch (rhs_vertices_counterclockwise.Count()) {
+		case 0:
+			throw new System.ArgumentException();
+		case 1:
+			return rhs_vertices_counterclockwise.First();
+		case 2:
+			{ //Segment & Point
+				var rhs_vertices = rhs_vertices_counterclockwise.ToArray();
+				var rhs_segment = rhs_vertices[1] - rhs_vertices[0];
+				var lhs_rhs0 = lhs - rhs_vertices[1];
+				var progress = Vector2.Dot(rhs_segment, lhs_rhs0) / rhs_segment.sqrMagnitude;
+				return rhs_vertices[0] + rhs_segment * progress;
+			}
+		default:
+			return GetNearestPointConvexPolygon(lhs, rhs_vertices_counterclockwise);
+		}
+	}
+
+	private static float GetSqrDistance(Vector2 lhs, IEnumerable<Vector2> rhs_vertices_counterclockwise) {
+		var rhs_nearest = GetNearestPoint(lhs, rhs_vertices_counterclockwise);
+		var distance = lhs - rhs_nearest;
+		return distance.sqrMagnitude;
+	}
+
+	private static Vector2 GetNearestPointConvexPolygon(Vector2 lhs, IEnumerable<Vector2> rhs_vertices_counterclockwise) {
+		var rhs_vertices_enumerator = rhs_vertices_counterclockwise.GetEnumerator();
+		rhs_vertices_enumerator.MoveNext();
+		var first_vertex = rhs_vertices_enumerator.Current;
+		var crnt_vertex = first_vertex;
+		var doubt_vertex_nearest = false;
+
+		rhs_vertices_enumerator.MoveNext();
+		var second_vertex = rhs_vertices_enumerator.Current;
+		do {
+			var next_vertex = rhs_vertices_enumerator.Current;
+
+			var next_crnt = next_vertex - crnt_vertex;
+			var lhs_crnt = lhs - crnt_vertex;
+			var dot_value = Vector2.Dot(next_crnt, lhs_crnt);
+			if (0.0f <= dot_value) {
+				if (Vector2PrepDot(next_crnt, lhs_crnt) <= 0.0f) {
+					//out
+					var line_sqr_length = next_crnt.sqrMagnitude;
+					if (dot_value <= line_sqr_length) {
+						//Segment & Point
+						var progress = dot_value / line_sqr_length;
+						return crnt_vertex + next_crnt * progress;
+					} else {
+						doubt_vertex_nearest = true;
+					}
+				}
+			} else if (doubt_vertex_nearest) {
+				return crnt_vertex;
+			}
+
+			crnt_vertex = next_vertex;
+		} while (rhs_vertices_enumerator.MoveNext());
+
+		if (doubt_vertex_nearest) {
+			var next_crnt = second_vertex - first_vertex;
+			var lhs_crnt = lhs - first_vertex;
+			var dot_value = Vector2.Dot(next_crnt, lhs_crnt);
+			if (dot_value < 0.0f) {
+				return first_vertex;
+			}
+		}
+
+		return lhs;
+	}
+
+	private static float GetSqrDistanceConvexPolygon(Vector2 lhs, IEnumerable<Vector2> rhs_vertices_counterclockwise) {
+		var rhs_nearest = GetNearestPointConvexPolygon(lhs, rhs_vertices_counterclockwise);
+		var distance = lhs - rhs_nearest;
+		return distance.sqrMagnitude;
 	}
 }

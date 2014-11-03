@@ -80,48 +80,48 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(BoxCollider lhs, BoxCollider rhs) {
-		var lhs_transform = lhs.transform;
-		var lhs_bounds = lhs.bounds;
-		var rhs_transform = rhs.transform;
-		var rhs_bounds = rhs.bounds;
+		var lhsTransform = lhs.transform;
+		var lhsBounds = lhs.bounds;
+		var rhsTransform = rhs.transform;
+		var rhsBounds = rhs.bounds;
 
-		var distance_axis = lhs_bounds.center - rhs_bounds.center;
-		var lhs_unit_axis = new Axis3d(lhs_transform.rotation);
-		var lhs_extents = Vector3.Scale(lhs.size * 0.5f, lhs_transform.lossyScale);
-		var lhs_extents_axis = new Axis3d(lhs_extents, lhs_transform.rotation);
-		var rhs_unit_axis = new Axis3d(rhs_transform.rotation);
-		var rhs_extents = Vector3.Scale(rhs.size * 0.5f, rhs_transform.lossyScale);
-		var rhs_extents_axis = new Axis3d(rhs_extents, rhs_transform.rotation);
+		var distanceAxis = lhsBounds.center - rhsBounds.center;
+		var lhsUnitAxis = new Axis3d(lhsTransform.rotation);
+		var lhsExtents = Vector3.Scale(lhs.size * 0.5f, lhsTransform.lossyScale);
+		var lhsExtentsAxis = new Axis3d(lhsExtents, lhsTransform.rotation);
+		var rhsUnitAxis = new Axis3d(rhsTransform.rotation);
+		var rhsExtents = Vector3.Scale(rhs.size * 0.5f, rhsTransform.lossyScale);
+		var rhsExtentsAxis = new Axis3d(rhsExtents, rhsTransform.rotation);
 
 		//lhs
-		for (int i = 0, i_max = 3; i < i_max; ++i) {
-			var split_axis = lhs_unit_axis[i];
-			var distance = GetVectorLengthOfProjection(distance_axis, split_axis);
-			distance -= lhs_extents[i];
-			distance -= GetVectorLengthOfProjection(rhs_extents_axis, split_axis);
+		for (int i = 0, iMax = 3; i < iMax; ++i) {
+			var splitAxis = lhsUnitAxis[i];
+			var distance = GetVectorLengthOfProjection(distanceAxis, splitAxis);
+			distance -= lhsExtents[i];
+			distance -= GetVectorLengthOfProjection(rhsExtentsAxis, splitAxis);
 			if (0.0f < distance) {
 				//NoHit
 				return false;
 			}
 		}
 		//rhs
-		for (int i = 0, i_max = 3; i < i_max; ++i) {
-			var split_axis = rhs_unit_axis[i];
-			var distance = GetVectorLengthOfProjection(distance_axis, split_axis);
-			distance -= GetVectorLengthOfProjection(lhs_extents_axis, split_axis);
-			distance -= rhs_extents[i];
+		for (int i = 0, iMax = 3; i < iMax; ++i) {
+			var splitAxis = rhsUnitAxis[i];
+			var distance = GetVectorLengthOfProjection(distanceAxis, splitAxis);
+			distance -= GetVectorLengthOfProjection(lhsExtentsAxis, splitAxis);
+			distance -= rhsExtents[i];
 			if (0.0f < distance) {
 				//NoHit
 				return false;
 			}
 		}
 		//3rd split axis
-		for (int i = 0, i_max = 3; i < i_max; ++i) {
-			for (int k = 0, k_max = 3; k < k_max; ++k) {
-				var split_axis = Vector3.Cross(lhs_unit_axis[i], rhs_unit_axis[k]);
-				var distance = GetVectorLengthOfProjection(distance_axis, split_axis);
-				distance -= GetVectorLengthOfProjection(lhs_extents_axis, split_axis);
-				distance -= GetVectorLengthOfProjection(rhs_extents_axis, split_axis);
+		for (int i = 0, iMax = 3; i < iMax; ++i) {
+			for (int k = 0, kMax = 3; k < kMax; ++k) {
+				var splitAxis = Vector3.Cross(lhsUnitAxis[i], rhsUnitAxis[k]);
+				var distance = GetVectorLengthOfProjection(distanceAxis, splitAxis);
+				distance -= GetVectorLengthOfProjection(lhsExtentsAxis, splitAxis);
+				distance -= GetVectorLengthOfProjection(rhsExtentsAxis, splitAxis);
 				if (0.0f < distance) {
 					//NoHit
 					return false;
@@ -134,70 +134,70 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(BoxCollider lhs, SphereCollider rhs) {
-		var lhs_transform = lhs.transform;
-		var lhs_bounds = lhs.bounds;
-		var rhs_bounds = rhs.bounds;
+		var lhsTransform = lhs.transform;
+		var lhsBounds = lhs.bounds;
+		var rhsBounds = rhs.bounds;
 
-		var distance_axis = lhs_bounds.center - rhs_bounds.center;
-		var lhs_unit_axis = new Axis3d(lhs_transform.rotation);
-		var lhs_extents = Vector3.Scale(lhs.size * 0.5f, lhs_transform.lossyScale);
-		var rhs_extents = rhs_bounds.extents.x;
-		var sqr_rhs_extents = rhs_extents * rhs_extents;
+		var distanceAxis = lhsBounds.center - rhsBounds.center;
+		var lhsUnitAxis = new Axis3d(lhsTransform.rotation);
+		var lhsExtents = Vector3.Scale(lhs.size * 0.5f, lhsTransform.lossyScale);
+		var rhsExtents = rhsBounds.extents.x;
+		var sqrRhsExtents = rhsExtents * rhsExtents;
 
-		var sqr_distance_from_box_edge = 0.0f;
-		for (int i = 0, i_max = 3; i < i_max; ++i) {
-			var split_axis = lhs_unit_axis[i];
-			var distance = GetVectorLengthOfProjection(distance_axis, split_axis);
-			distance -= lhs_extents[i];
-			if (rhs_extents < distance) {
+		var sqrDistanceFromBoxEdge = 0.0f;
+		for (int i = 0, iMax = 3; i < iMax; ++i) {
+			var splitAxis = lhsUnitAxis[i];
+			var distance = GetVectorLengthOfProjection(distanceAxis, splitAxis);
+			distance -= lhsExtents[i];
+			if (rhsExtents < distance) {
 				//NoHit
 				return false;
 			} else if (0.0f < distance) {
-				sqr_distance_from_box_edge += distance * distance;
+				sqrDistanceFromBoxEdge += distance * distance;
 			}
 		}
-		return sqr_distance_from_box_edge < sqr_rhs_extents;
+		return sqrDistanceFromBoxEdge < sqrRhsExtents;
 	}
 
 	public static bool IsHit(BoxCollider lhs, CapsuleCollider rhs) {
-		var lhs_planes = GetPlaneOfBox(lhs);
-		var rhs_transform = rhs.transform;
-		var rhs_segment = GetSegmentOfCapsule(rhs);
-		var rhs_extents = rhs.radius * GetMaxLengthInAxis(rhs_transform.lossyScale);
+		var lhsPlanes = GetPlaneOfBox(lhs);
+		var rhsTransform = rhs.transform;
+		var rhsSegment = GetSegmentOfCapsule(rhs);
+		var rhsExtents = rhs.radius * GetMaxLengthInAxis(rhsTransform.lossyScale);
 
 		//Plane & Point
-		var points = new[]{rhs_segment.origin, rhs_segment.origin + rhs_segment.direction};
+		var points = new[]{rhsSegment.origin, rhsSegment.origin + rhsSegment.direction};
 		foreach (var point in points) {
-			var sign_distances = lhs_planes.Select(x=>GetSignDistance(point, x)).ToArray();
-			var axis_region = Enumerable.Range(0, sign_distances.Length / 2)
+			var signDistances = lhsPlanes.Select(x=>GetSignDistance(point, x)).ToArray();
+			var axisRegion = Enumerable.Range(0, signDistances.Length / 2)
 										.Select(x=>x * 2)
-										.Select(x=>sign_distances[x] * sign_distances[x+1])
+										.Select(x=>signDistances[x] * signDistances[x+1])
 										.ToArray();
-			var voronoi_kind = Enumerable.Range(0, axis_region.Length)
-										.Select(x=>((0.0f <= axis_region[x])? 1<<x: 0))
+			var voronoiKind = Enumerable.Range(0, axisRegion.Length)
+										.Select(x=>((0.0f <= axisRegion[x])? 1<<x: 0))
 										.Sum();
 										
-			switch (voronoi_kind) {
+			switch (voronoiKind) {
 			case ((1<<0) + (1<<1) + (1<<2)): //Hit
 				return true;
 			case ((0<<0) + (1<<1) + (1<<2)): //X-axis plane near
 				if (Enumerable.Range(0, 2)
-								.Select(x=>sign_distances[x])
-								.Any(x=>((0.0f<=x)&&(x<=rhs_extents)))) {
+								.Select(x=>signDistances[x])
+								.Any(x=>((0.0f<=x)&&(x<=rhsExtents)))) {
 					return true;
 				}
 				break;
 			case ((1<<0) + (0<<1) + (1<<2)): //Y-axis plane near
 				if (Enumerable.Range(2, 2)
-								.Select(x=>sign_distances[x])
-								.Any(x=>((0.0f<=x)&&(x<=rhs_extents)))) {
+								.Select(x=>signDistances[x])
+								.Any(x=>((0.0f<=x)&&(x<=rhsExtents)))) {
 					return true;
 				}
 				break;
 			case ((1<<0) + (1<<1) + (0<<2)): //Z-axis plane near
 				if (Enumerable.Range(4, 2)
-								.Select(x=>sign_distances[x])
-								.Any(x=>((0.0f<=x)&&(x<=rhs_extents)))) {
+								.Select(x=>signDistances[x])
+								.Any(x=>((0.0f<=x)&&(x<=rhsExtents)))) {
 					return true;
 				}
 				break;
@@ -208,12 +208,12 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		}
 	
 		//Segment & Segment or Segment & Point
-		var lhs_segments = GetSidesOfBox(lhs);
-		var sqr_rhs_extents = rhs_extents * rhs_extents;
+		var lhsSegments = GetSidesOfBox(lhs);
+		var sqrRhsExtents = rhsExtents * rhsExtents;
 		
-		foreach (var lhs_segment in lhs_segments) {
-			var segment_sqr_distance = GetSqrDistance(lhs_segment, rhs_segment);
-			if (segment_sqr_distance < sqr_rhs_extents) {
+		foreach (var lhsSegment in lhsSegments) {
+			var segmentSqrDistance = GetSqrDistance(lhsSegment, rhsSegment);
+			if (segmentSqrDistance < sqrRhsExtents) {
 				//Hit
 				return true;
 			}
@@ -244,30 +244,30 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(SphereCollider lhs, SphereCollider rhs) {
-		var lhs_bounds = lhs.bounds;
-		var rhs_bounds = rhs.bounds;
+		var lhsBounds = lhs.bounds;
+		var rhsBounds = rhs.bounds;
 
-		var sqr_distance = (lhs_bounds.center - rhs_bounds.center).sqrMagnitude;
-		var lhs_extents = lhs_bounds.extents.x;
-		var rhs_extents = rhs_bounds.extents.x;
-		var extents = lhs_extents + rhs_extents;
-		var sqr_extents = extents * extents;
+		var sqrDistance = (lhsBounds.center - rhsBounds.center).sqrMagnitude;
+		var lhsExtents = lhsBounds.extents.x;
+		var rhsExtents = rhsBounds.extents.x;
+		var extents = lhsExtents + rhsExtents;
+		var sqrExtents = extents * extents;
 
-		return sqr_distance < sqr_extents;
+		return sqrDistance < sqrExtents;
 	}
 
 	public static bool IsHit(SphereCollider lhs, CapsuleCollider rhs) {
-		var lhs_bounds = lhs.bounds;
-		var rhs_transform = rhs.transform;
-		var rhs_segment = GetSegmentOfCapsule(rhs);
+		var lhsBounds = lhs.bounds;
+		var rhsTransform = rhs.transform;
+		var rhsSegment = GetSegmentOfCapsule(rhs);
 
-		var sqr_distance = GetSqrDistance(lhs_bounds.center, rhs_segment);
-		var lhs_extents = lhs_bounds.extents.x;
-		var rhs_extents = rhs.radius * GetMaxLengthInAxis(rhs_transform.lossyScale);
-		var extents = lhs_extents + rhs_extents;
-		var sqr_extents = extents * extents;
+		var sqrDistance = GetSqrDistance(lhsBounds.center, rhsSegment);
+		var lhsExtents = lhsBounds.extents.x;
+		var rhsExtents = rhs.radius * GetMaxLengthInAxis(rhsTransform.lossyScale);
+		var extents = lhsExtents + rhsExtents;
+		var sqrExtents = extents * extents;
 
-		return sqr_distance < sqr_extents;
+		return sqrDistance < sqrExtents;
 	}
 
 	public static bool IsHit(SphereCollider lhs, CharacterController rhs) {
@@ -295,18 +295,18 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(CapsuleCollider lhs, CapsuleCollider rhs) {
-		var lhs_transform = lhs.transform;
-		var rhs_transform = rhs.transform;
-		var lhs_segment = GetSegmentOfCapsule(lhs);
-		var rhs_segment = GetSegmentOfCapsule(rhs);
+		var lhsTransform = lhs.transform;
+		var rhsTransform = rhs.transform;
+		var lhsSegment = GetSegmentOfCapsule(lhs);
+		var rhsSegment = GetSegmentOfCapsule(rhs);
 
-		var sqr_distance = GetSqrDistance(lhs_segment, rhs_segment);
-		var lhs_extents = lhs.radius * GetMaxLengthInAxis(lhs_transform.lossyScale);
-		var rhs_extents = rhs.radius * GetMaxLengthInAxis(rhs_transform.lossyScale);
-		var extents = lhs_extents + rhs_extents;
-		var sqr_extents = extents * extents;
+		var sqrDistance = GetSqrDistance(lhsSegment, rhsSegment);
+		var lhsExtents = lhs.radius * GetMaxLengthInAxis(lhsTransform.lossyScale);
+		var rhsExtents = rhs.radius * GetMaxLengthInAxis(rhsTransform.lossyScale);
+		var extents = lhsExtents + rhsExtents;
+		var sqrExtents = extents * extents;
 
-		return sqr_distance < sqr_extents;
+		return sqrDistance < sqrExtents;
 	}
 
 	public static bool IsHit(CapsuleCollider lhs, CharacterController rhs) {
@@ -441,19 +441,19 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(BoxCollider2D lhs, BoxCollider2D rhs) {
-		var lhs_bounds = lhs.bounds;
-		var rhs_bounds = rhs.bounds;
+		var lhsBounds = lhs.bounds;
+		var rhsBounds = rhs.bounds;
 
-		var distance_axis = (Vector2)lhs_bounds.center - (Vector2)rhs_bounds.center;
-		var lhs_extents_axis = GetExtentsAxisOfBox(lhs);
-		var rhs_extents_axis = GetExtentsAxisOfBox(rhs);
+		var distanceAxis = (Vector2)lhsBounds.center - (Vector2)rhsBounds.center;
+		var lhsExtentsAxis = GetExtentsAxisOfBox(lhs);
+		var rhsExtentsAxis = GetExtentsAxisOfBox(rhs);
 
 		//lhs right angle
-		for (int i = 0, i_max = 2; i < i_max; ++i) {
-			var split_axis = Vector2Angle(lhs_extents_axis[i], 90.0f).normalized;
-			var distance = GetVectorLengthOfProjection(distance_axis, split_axis);
-			distance -= GetVectorLengthOfProjection(lhs_extents_axis, split_axis);
-			distance -= GetVectorLengthOfProjection(rhs_extents_axis, split_axis);
+		for (int i = 0, iMax = 2; i < iMax; ++i) {
+			var splitAxis = Vector2Angle(lhsExtentsAxis[i], 90.0f).normalized;
+			var distance = GetVectorLengthOfProjection(distanceAxis, splitAxis);
+			distance -= GetVectorLengthOfProjection(lhsExtentsAxis, splitAxis);
+			distance -= GetVectorLengthOfProjection(rhsExtentsAxis, splitAxis);
 			if (0.0f < distance) {
 				//NoHit
 				return false;
@@ -461,11 +461,11 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		}
 
 		//rhs right angle
-		for (int i = 0, i_max = 2; i < i_max; ++i) {
-			var split_axis = Vector2Angle(rhs_extents_axis[i], 90.0f).normalized;
-			var distance = GetVectorLengthOfProjection(distance_axis, split_axis);
-			distance -= GetVectorLengthOfProjection(lhs_extents_axis, split_axis);
-			distance -= GetVectorLengthOfProjection(rhs_extents_axis, split_axis);
+		for (int i = 0, iMax = 2; i < iMax; ++i) {
+			var splitAxis = Vector2Angle(rhsExtentsAxis[i], 90.0f).normalized;
+			var distance = GetVectorLengthOfProjection(distanceAxis, splitAxis);
+			distance -= GetVectorLengthOfProjection(lhsExtentsAxis, splitAxis);
+			distance -= GetVectorLengthOfProjection(rhsExtentsAxis, splitAxis);
 			if (0.0f < distance) {
 				//NoHit
 				return false;
@@ -477,15 +477,15 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(BoxCollider2D lhs, CircleCollider2D rhs) {
-		var lhs_vertices = GetVerticesOfBox(lhs);
-		var rhs_bounds = rhs.bounds;
-		var rhs_extents = rhs_bounds.extents.x;
-		var sqr_rhs_extents = rhs_extents * rhs_extents;
+		var lhsVertices = GetVerticesOfBox(lhs);
+		var rhsBounds = rhs.bounds;
+		var rhsExtents = rhsBounds.extents.x;
+		var sqrRhsExtents = rhsExtents * rhsExtents;
 
-		var lhs_vertices_clockwise = new[]{lhs_vertices[0], lhs_vertices[1], lhs_vertices[3], lhs_vertices[2]};
-		var sqr_distances = GetSqrDistance(rhs_bounds.center, lhs_vertices_clockwise);
+		var lhsVerticesClockwise = new[]{lhsVertices[0], lhsVertices[1], lhsVertices[3], lhsVertices[2]};
+		var sqrDistances = GetSqrDistance(rhsBounds.center, lhsVerticesClockwise);
 
-		return sqr_distances < sqr_rhs_extents;
+		return sqrDistances < sqrRhsExtents;
 	}
 
 	public static bool IsHit(BoxCollider2D lhs, EdgeCollider2D rhs) {
@@ -501,16 +501,16 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(CircleCollider2D lhs, CircleCollider2D rhs) {
-		var lhs_bounds = lhs.bounds;
-		var rhs_bounds = rhs.bounds;
+		var lhsBounds = lhs.bounds;
+		var rhsBounds = rhs.bounds;
 
-		var sqr_distance = (lhs_bounds.center - rhs_bounds.center).sqrMagnitude;
-		var lhs_extents = lhs_bounds.extents.x;
-		var rhs_extents = rhs_bounds.extents.x;
-		var extents = lhs_extents + rhs_extents;
-		var sqr_extents = extents * extents;
+		var sqrDistance = (lhsBounds.center - rhsBounds.center).sqrMagnitude;
+		var lhsExtents = lhsBounds.extents.x;
+		var rhsExtents = rhsBounds.extents.x;
+		var extents = lhsExtents + rhsExtents;
+		var sqrExtents = extents * extents;
 
-		return sqr_distance < sqr_extents;
+		return sqrDistance < sqrExtents;
 	}
 
 	public static bool IsHit(CircleCollider2D lhs, EdgeCollider2D rhs) {
@@ -694,17 +694,17 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	private static Vector3[] GetVerticesOfBox(BoxCollider src) {
-		var src_transform = src.transform;
-		var src_bounds = src.bounds;
-		var axis_size = new Axis3d(Vector3.Scale(src.size, src_transform.lossyScale), src_transform.rotation);
-		var min_point = src_bounds.center - (axis_size.right + axis_size.up + axis_size.forward) * 0.5f;
+		var srcTransform = src.transform;
+		var srcBounds = src.bounds;
+		var axisSize = new Axis3d(Vector3.Scale(src.size, srcTransform.lossyScale), srcTransform.rotation);
+		var minPoint = srcBounds.center - (axisSize.right + axisSize.up + axisSize.forward) * 0.5f;
 
 		var result = new Vector3[8];
-		for (int i = 0, i_max = result.Length; i < i_max; ++i) {
-			result[i] = min_point;
-			if (0 != (i & 0x01)) result[i] += axis_size.right;
-			if (0 != (i & 0x02)) result[i] += axis_size.up;
-			if (0 != (i & 0x04)) result[i] += axis_size.forward;
+		for (int i = 0, iMax = result.Length; i < iMax; ++i) {
+			result[i] = minPoint;
+			if (0 != (i & 0x01)) result[i] += axisSize.right;
+			if (0 != (i & 0x02)) result[i] += axisSize.up;
+			if (0 != (i & 0x04)) result[i] += axisSize.forward;
 		}
 		return result;
 	}
@@ -745,133 +745,133 @@ public class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	private static Plane[] GetPlaneOfBox(BoxCollider src) {
-		var src_transform = src.transform;
-		var src_bounds = src.bounds;
-		var axis_unit = new Axis3d(src_transform.rotation);
-		var axis_size = new Axis3d(Vector3.Scale(src.size * 0.5f, src_transform.lossyScale), src_transform.rotation);
+		var srcTransform = src.transform;
+		var srcBounds = src.bounds;
+		var axisUnit = new Axis3d(srcTransform.rotation);
+		var axisSize = new Axis3d(Vector3.Scale(src.size * 0.5f, srcTransform.lossyScale), srcTransform.rotation);
 
 		var result = new Plane[6];
-		result[0] = new Plane(src_bounds.center + axis_size.right,  axis_unit.right);
-		result[1] = new Plane(src_bounds.center - axis_size.right, -axis_unit.right);
-		result[2] = new Plane(src_bounds.center + axis_size.up,  axis_unit.up);
-		result[3] = new Plane(src_bounds.center - axis_size.up, -axis_unit.up);
-		result[4] = new Plane(src_bounds.center + axis_size.forward,  axis_unit.forward);
-		result[5] = new Plane(src_bounds.center - axis_size.forward, -axis_unit.forward);
+		result[0] = new Plane(srcBounds.center + axisSize.right,  axisUnit.right);
+		result[1] = new Plane(srcBounds.center - axisSize.right, -axisUnit.right);
+		result[2] = new Plane(srcBounds.center + axisSize.up,  axisUnit.up);
+		result[3] = new Plane(srcBounds.center - axisSize.up, -axisUnit.up);
+		result[4] = new Plane(srcBounds.center + axisSize.forward,  axisUnit.forward);
+		result[5] = new Plane(srcBounds.center - axisSize.forward, -axisUnit.forward);
 		return result;
 	}
 	
 
 	private static Segment GetSegmentOfCapsule(CapsuleCollider src) {
-		var src_transform = src.transform;
+		var srcTransform = src.transform;
 
 		Vector3 origin = GetDirectionBaseVectorOfCapsule(src);
 		var length = src.height - src.radius * 2.0f;
-		var direction = src_transform.rotation * Vector3.Scale(origin * length, src_transform.lossyScale);
+		var direction = srcTransform.rotation * Vector3.Scale(origin * length, srcTransform.lossyScale);
 		origin = direction * -0.5f + src.bounds.center;
 		return new Segment(origin, direction);
 	}
 
 	private static Vector3 GetNearestPoint(Vector3 lhs, Segment rhs) {
-		var rhs_origin = rhs.origin;
-		var rhs_direction = rhs.direction;
+		var rhsOrigin = rhs.origin;
+		var rhsDirection = rhs.direction;
 
-		var between = lhs - rhs_origin;
-		var rhs_sqr_length = rhs_direction.sqrMagnitude;
+		var between = lhs - rhsOrigin;
+		var rhsSqrLength = rhsDirection.sqrMagnitude;
 
-		var between_of_rhs_projection = Vector3.Dot(rhs_direction, between);
-		var rhs_progress = Mathf.Clamp01(between_of_rhs_projection / rhs_sqr_length);
-		return rhs_origin + rhs_direction * rhs_progress;
+		var betweenOfRhsProjection = Vector3.Dot(rhsDirection, between);
+		var rhsProgress = Mathf.Clamp01(betweenOfRhsProjection / rhsSqrLength);
+		return rhsOrigin + rhsDirection * rhsProgress;
 	}
 
 	private static float GetSqrDistance(Vector3 lhs, Segment rhs) {
-		var rhs_nearest = GetNearestPoint(lhs, rhs);
-		var distance = lhs - rhs_nearest;
+		var rhsNearest = GetNearestPoint(lhs, rhs);
+		var distance = lhs - rhsNearest;
 		return distance.sqrMagnitude;
 	}
 
 	private static Vector3 GetNearestPoint(Vector3 lhs, BoxCollider rhs) {
-		var rhs_transform = rhs.transform;
-		var rhs_bounds = rhs.bounds;
+		var rhsTransform = rhs.transform;
+		var rhsBounds = rhs.bounds;
 
-		var distance_axis = lhs - rhs_bounds.center;
-		var rhs_unit_axis = new Axis3d(rhs_transform.rotation);
-		var rhs_extents = Vector3.Scale(rhs.size * 0.5f, rhs_transform.lossyScale);
+		var distanceAxis = lhs - rhsBounds.center;
+		var rhsUnitAxis = new Axis3d(rhsTransform.rotation);
+		var rhsExtents = Vector3.Scale(rhs.size * 0.5f, rhsTransform.lossyScale);
 
-		var result = rhs_bounds.center;
-		for (int i = 0, i_max = 3; i < i_max; ++i) {
-			var distance = Vector3.Dot(rhs_unit_axis[i], distance_axis);
-			distance = Mathf.Clamp(distance, -rhs_extents[i], rhs_extents[i]);
-			result += rhs_unit_axis[i] * distance;
+		var result = rhsBounds.center;
+		for (int i = 0, iMax = 3; i < iMax; ++i) {
+			var distance = Vector3.Dot(rhsUnitAxis[i], distanceAxis);
+			distance = Mathf.Clamp(distance, -rhsExtents[i], rhsExtents[i]);
+			result += rhsUnitAxis[i] * distance;
 		}
 		return result;
 	}
 
 	private static float GetSqrDistance(Vector3 lhs, BoxCollider rhs) {
-		var lhs_nearest = GetNearestPoint(lhs, rhs);
-		var distance = lhs_nearest - rhs.bounds.center;
+		var lhsNearest = GetNearestPoint(lhs, rhs);
+		var distance = lhsNearest - rhs.bounds.center;
 		return distance.sqrMagnitude;
 	}
 
 	private static Vector3[] GetNearestPoint(Segment lhs, Segment rhs) {
-		var lhs_origin = lhs.origin;
-		var lhs_direction = lhs.direction;
-		var rhs_origin = rhs.origin;
-		var rhs_direction = rhs.direction;
+		var lhsOrigin = lhs.origin;
+		var lhsDirection = lhs.direction;
+		var rhsOrigin = rhs.origin;
+		var rhsDirection = rhs.direction;
 
-		var between = lhs_origin - rhs_origin;
-		var lhs_sqr_length = lhs_direction.sqrMagnitude;
-		var rhs_sqr_length = rhs_direction.sqrMagnitude;
+		var between = lhsOrigin - rhsOrigin;
+		var lhsSqrLength = lhsDirection.sqrMagnitude;
+		var rhsSqrLength = rhsDirection.sqrMagnitude;
 
-		float lhs_progress, rhs_progress;
+		float lhsProgress, rhsProgress;
 		do {
-			if ((0.0f == lhs_sqr_length) || (0.0f == rhs_sqr_length)) {
+			if ((0.0f == lhsSqrLength) || (0.0f == rhsSqrLength)) {
 				//Point & Point
-				lhs_progress = 0.0f;
-				rhs_progress = 0.0f;
+				lhsProgress = 0.0f;
+				rhsProgress = 0.0f;
 				break;
 			}
 
-			var between_of_rhs_projection = Vector3.Dot(rhs_direction, between);
-			if (0.0f == lhs_sqr_length) {
+			var betweenOfRhsProjection = Vector3.Dot(rhsDirection, between);
+			if (0.0f == lhsSqrLength) {
 				//Point & Segment
-				lhs_progress = 0.0f;
-				rhs_progress = Mathf.Clamp01(between_of_rhs_projection / rhs_sqr_length);
+				lhsProgress = 0.0f;
+				rhsProgress = Mathf.Clamp01(betweenOfRhsProjection / rhsSqrLength);
 				break;
 			}
-			var between_of_lhs_projection = Vector3.Dot(lhs_direction, between);
-			if (0.0f == rhs_sqr_length) {
+			var betweenOfLhsProjection = Vector3.Dot(lhsDirection, between);
+			if (0.0f == rhsSqrLength) {
 				//Segment & Point
-				lhs_progress = Mathf.Clamp01(-between_of_lhs_projection / lhs_sqr_length);
-				rhs_progress = 0.0f;
+				lhsProgress = Mathf.Clamp01(-betweenOfLhsProjection / lhsSqrLength);
+				rhsProgress = 0.0f;
 				break;
 			}
 			//Segment & Segment
-			var rhs_of_lhs_projection = Vector3.Dot(lhs_direction, rhs_direction);
-			var denom = lhs_sqr_length * rhs_sqr_length - rhs_of_lhs_projection * rhs_of_lhs_projection;
+			var rhsOfLhsProjection = Vector3.Dot(lhsDirection, rhsDirection);
+			var denom = lhsSqrLength * rhsSqrLength - rhsOfLhsProjection * rhsOfLhsProjection;
 			if (0.0f != denom) {
-				lhs_progress = Mathf.Clamp01((rhs_of_lhs_projection * between_of_rhs_projection - between_of_lhs_projection * rhs_sqr_length) / denom);
+				lhsProgress = Mathf.Clamp01((rhsOfLhsProjection * betweenOfRhsProjection - betweenOfLhsProjection * rhsSqrLength) / denom);
 			} else {
-				lhs_progress = 0.0f;
+				lhsProgress = 0.0f;
 			}
-			var rhs_progress_nom = rhs_of_lhs_projection * lhs_progress + between_of_rhs_projection;
-			if (rhs_progress_nom < 0.0f) {
-				rhs_progress = 0.0f;
-				lhs_progress = Mathf.Clamp01(-between_of_lhs_projection / lhs_sqr_length);
-			} else if (rhs_sqr_length < rhs_progress_nom) {
-				rhs_progress = 1.0f;
-				lhs_progress = Mathf.Clamp01((rhs_of_lhs_projection - between_of_lhs_projection) / lhs_sqr_length);
+			var rhsProgressNom = rhsOfLhsProjection * lhsProgress + betweenOfRhsProjection;
+			if (rhsProgressNom < 0.0f) {
+				rhsProgress = 0.0f;
+				lhsProgress = Mathf.Clamp01(-betweenOfLhsProjection / lhsSqrLength);
+			} else if (rhsSqrLength < rhsProgressNom) {
+				rhsProgress = 1.0f;
+				lhsProgress = Mathf.Clamp01((rhsOfLhsProjection - betweenOfLhsProjection) / lhsSqrLength);
 			} else {
-				rhs_progress = rhs_progress_nom / rhs_sqr_length;
+				rhsProgress = rhsProgressNom / rhsSqrLength;
 			}
 		} while (false);
-		var lhs_position = lhs_origin + lhs_direction * lhs_progress;
-		var rhs_position = rhs_origin + rhs_direction * rhs_progress;
-		return new[]{lhs_position, rhs_position};
+		var lhsPosition = lhsOrigin + lhsDirection * lhsProgress;
+		var rhsPosition = rhsOrigin + rhsDirection * rhsProgress;
+		return new[]{lhsPosition, rhsPosition};
 	}
 
 	private static float GetSqrDistance(Segment lhs, Segment rhs) {
-		var nearest_points = GetNearestPoint(lhs, rhs);
-		var distance = nearest_points[0]  - nearest_points[1];
+		var nearestPoints = GetNearestPoint(lhs, rhs);
+		var distance = nearestPoints[0]  - nearestPoints[1];
 		return distance.sqrMagnitude;
 	}
 
@@ -922,15 +922,15 @@ public class ColliderIsHitExtention : MonoBehaviour {
 
 	private static Vector2[] GetVerticesOfBox(BoxCollider2D src) {
 		var matrix = src.transform.localToWorldMatrix;
-		var min_point = src.center - src.size * 0.5f;
+		var minPoint = src.center - src.size * 0.5f;
 
-		var local_position = new Vector2[4];
-		for (int i = 0, i_max = local_position.Length; i < i_max; ++i) {
-			local_position[i] = min_point;
-			if (0 != (i & 0x01)) local_position[i].x += src.size.x;
-			if (0 != (i & 0x02)) local_position[i].y += src.size.y;
+		var localPosition = new Vector2[4];
+		for (int i = 0, iMax = localPosition.Length; i < iMax; ++i) {
+			localPosition[i] = minPoint;
+			if (0 != (i & 0x01)) localPosition[i].x += src.size.x;
+			if (0 != (i & 0x02)) localPosition[i].y += src.size.y;
 		}
-		var result = local_position.Select(x=>(Vector2)matrix.MultiplyPoint3x4(x))
+		var result = localPosition.Select(x=>(Vector2)matrix.MultiplyPoint3x4(x))
 									.ToArray();
 		return result;
 	}
@@ -944,80 +944,80 @@ public class ColliderIsHitExtention : MonoBehaviour {
 		return new Axis2d(extents[0], extents[1]);
 	}
 
-	private static Vector2 GetNearestPoint(Vector2 lhs, IEnumerable<Vector2> rhs_vertices_counterclockwise) {
-		switch (rhs_vertices_counterclockwise.Count()) {
+	private static Vector2 GetNearestPoint(Vector2 lhs, IEnumerable<Vector2> rhsVerticesCounterclockwise) {
+		switch (rhsVerticesCounterclockwise.Count()) {
 		case 0:
 			throw new System.ArgumentException();
 		case 1:
-			return rhs_vertices_counterclockwise.First();
+			return rhsVerticesCounterclockwise.First();
 		case 2:
 			{ //Segment & Point
-				var rhs_vertices = rhs_vertices_counterclockwise.ToArray();
-				var rhs_segment = rhs_vertices[1] - rhs_vertices[0];
-				var lhs_rhs0 = lhs - rhs_vertices[1];
-				var progress = Vector2.Dot(rhs_segment, lhs_rhs0) / rhs_segment.sqrMagnitude;
-				return rhs_vertices[0] + rhs_segment * progress;
+				var rhsVertices = rhsVerticesCounterclockwise.ToArray();
+				var rhsSegment = rhsVertices[1] - rhsVertices[0];
+				var lhsRhs0 = lhs - rhsVertices[1];
+				var progress = Vector2.Dot(rhsSegment, lhsRhs0) / rhsSegment.sqrMagnitude;
+				return rhsVertices[0] + rhsSegment * progress;
 			}
 		default:
-			return GetNearestPointConvexPolygon(lhs, rhs_vertices_counterclockwise);
+			return GetNearestPointConvexPolygon(lhs, rhsVerticesCounterclockwise);
 		}
 	}
 
-	private static float GetSqrDistance(Vector2 lhs, IEnumerable<Vector2> rhs_vertices_counterclockwise) {
-		var rhs_nearest = GetNearestPoint(lhs, rhs_vertices_counterclockwise);
-		var distance = lhs - rhs_nearest;
+	private static float GetSqrDistance(Vector2 lhs, IEnumerable<Vector2> rhsVerticesCounterclockwise) {
+		var rhsNearest = GetNearestPoint(lhs, rhsVerticesCounterclockwise);
+		var distance = lhs - rhsNearest;
 		return distance.sqrMagnitude;
 	}
 
-	private static Vector2 GetNearestPointConvexPolygon(Vector2 lhs, IEnumerable<Vector2> rhs_vertices_counterclockwise) {
-		var rhs_vertices_enumerator = rhs_vertices_counterclockwise.GetEnumerator();
-		rhs_vertices_enumerator.MoveNext();
-		var first_vertex = rhs_vertices_enumerator.Current;
-		var crnt_vertex = first_vertex;
-		var doubt_vertex_nearest = false;
+	private static Vector2 GetNearestPointConvexPolygon(Vector2 lhs, IEnumerable<Vector2> rhsVerticesCounterclockwise) {
+		var rhsVerticesEnumerator = rhsVerticesCounterclockwise.GetEnumerator();
+		rhsVerticesEnumerator.MoveNext();
+		var firstVertex = rhsVerticesEnumerator.Current;
+		var crntVertex = firstVertex;
+		var doubtVertexNearest = false;
 
-		rhs_vertices_enumerator.MoveNext();
-		var second_vertex = rhs_vertices_enumerator.Current;
+		rhsVerticesEnumerator.MoveNext();
+		var secondVertex = rhsVerticesEnumerator.Current;
 		do {
-			var next_vertex = rhs_vertices_enumerator.Current;
+			var nextVertex = rhsVerticesEnumerator.Current;
 
-			var next_crnt = next_vertex - crnt_vertex;
-			var lhs_crnt = lhs - crnt_vertex;
-			var dot_value = Vector2.Dot(next_crnt, lhs_crnt);
-			if (0.0f <= dot_value) {
-				if (Vector2PrepDot(next_crnt, lhs_crnt) <= 0.0f) {
+			var nextCrnt = nextVertex - crntVertex;
+			var lhsCrnt = lhs - crntVertex;
+			var dotValue = Vector2.Dot(nextCrnt, lhsCrnt);
+			if (0.0f <= dotValue) {
+				if (Vector2PrepDot(nextCrnt, lhsCrnt) <= 0.0f) {
 					//out
-					var next_crnt_sqr_length = next_crnt.sqrMagnitude;
-					if (dot_value <= next_crnt_sqr_length) {
+					var nextCrntSqrLength = nextCrnt.sqrMagnitude;
+					if (dotValue <= nextCrntSqrLength) {
 						//Segment & Point
-						var progress = dot_value / next_crnt_sqr_length;
-						return crnt_vertex + next_crnt * progress;
+						var progress = dotValue / nextCrntSqrLength;
+						return crntVertex + nextCrnt * progress;
 					} else {
-						doubt_vertex_nearest = true;
+						doubtVertexNearest = true;
 					}
 				}
-			} else if (doubt_vertex_nearest) {
-				return crnt_vertex;
+			} else if (doubtVertexNearest) {
+				return crntVertex;
 			}
 
-			crnt_vertex = next_vertex;
-		} while (rhs_vertices_enumerator.MoveNext());
+			crntVertex = nextVertex;
+		} while (rhsVerticesEnumerator.MoveNext());
 
-		if (doubt_vertex_nearest) {
-			var next_crnt = second_vertex - first_vertex;
-			var lhs_crnt = lhs - first_vertex;
-			var dot_value = Vector2.Dot(next_crnt, lhs_crnt);
-			if (dot_value < 0.0f) {
-				return first_vertex;
+		if (doubtVertexNearest) {
+			var nextCrnt = secondVertex - firstVertex;
+			var lhsCrnt = lhs - firstVertex;
+			var dotValue = Vector2.Dot(nextCrnt, lhsCrnt);
+			if (dotValue < 0.0f) {
+				return firstVertex;
 			}
 		}
 
 		return lhs;
 	}
 
-	private static float GetSqrDistanceConvexPolygon(Vector2 lhs, IEnumerable<Vector2> rhs_vertices_counterclockwise) {
-		var rhs_nearest = GetNearestPointConvexPolygon(lhs, rhs_vertices_counterclockwise);
-		var distance = lhs - rhs_nearest;
+	private static float GetSqrDistanceConvexPolygon(Vector2 lhs, IEnumerable<Vector2> rhsVerticesCounterclockwise) {
+		var rhsNearest = GetNearestPointConvexPolygon(lhs, rhsVerticesCounterclockwise);
+		var distance = lhs - rhsNearest;
 		return distance.sqrMagnitude;
 	}
 }

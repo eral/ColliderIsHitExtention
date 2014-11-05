@@ -178,7 +178,7 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 		return result;
 	}
 
-	private class Axis2d {
+	private class AxisPack2 {
 		private Vector2[] axis;
 
 		public Vector2 this[int i] {
@@ -193,13 +193,13 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 			set{this.axis[1] = value;}
 			get{return this.axis[1];}
 		}
-		public Axis2d() : this(Vector2.one, 0.0f) {}
-		public Axis2d(Vector2 scale) : this(scale, 0.0f) {}
-		public Axis2d(float rotation) : this(Vector2.one, rotation) {}
-		public Axis2d(Vector2 scale, float rotation) {
+		public AxisPack2() : this(Vector2.one, 0.0f) {}
+		public AxisPack2(Vector2 scale) : this(scale, 0.0f) {}
+		public AxisPack2(float rotation) : this(Vector2.one, rotation) {}
+		public AxisPack2(Vector2 scale, float rotation) {
 			this.axis = new[]{Vector2.right * scale.x, Vector2.up * scale.y}.Select(x=>Vector2Angle(x, rotation)).ToArray();
 		}
-		public Axis2d(Vector2 right, Vector2 up) {
+		public AxisPack2(Vector2 right, Vector2 up) {
 			this.axis = new[]{right, up}.ToArray();
 		}
 	}
@@ -216,7 +216,7 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 		return Mathf.Abs(Vector2.Dot(projection, src));
 	}
 
-	private static float GetVectorLengthOfProjection(Axis2d axis, Vector2 projection) {
+	private static float GetVectorLengthOfProjection(AxisPack2 axis, Vector2 projection) {
 		float result = Enumerable.Range(0, 2)
 								.Select(x=>GetVectorLengthOfProjection(projection, axis[x]))
 								.Sum();
@@ -238,13 +238,13 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 		return result;
 	}
 
-	private static Axis2d GetExtentsAxisOfBox(BoxCollider2D src) {
+	private static AxisPack2 GetExtentsAxisOfBox(BoxCollider2D src) {
 		var vertices = GetVerticesOfBox(src);
 
 		var directions = new[]{vertices[1] - vertices[0], vertices[2] - vertices[0]};
 		var extents = directions.Select(x=>x * 0.5f)
 								.ToArray();
-		return new Axis2d(extents[0], extents[1]);
+		return new AxisPack2(extents[0], extents[1]);
 	}
 
 	private static Vector2 GetNearestPoint(Vector2 lhs, IEnumerable<Vector2> rhsVerticesCounterclockwise) {

@@ -86,12 +86,12 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 		var rhsBounds = rhs.bounds;
 
 		var distanceAxis = lhsBounds.center - rhsBounds.center;
-		var lhsUnitAxis = new Axis3d(lhsTransform.rotation);
+		var lhsUnitAxis = new AxisPack3(lhsTransform.rotation);
 		var lhsExtents = Vector3.Scale(lhs.size * 0.5f, lhsTransform.lossyScale);
-		var lhsExtentsAxis = new Axis3d(lhsExtents, lhsTransform.rotation);
-		var rhsUnitAxis = new Axis3d(rhsTransform.rotation);
+		var lhsExtentsAxis = new AxisPack3(lhsExtents, lhsTransform.rotation);
+		var rhsUnitAxis = new AxisPack3(rhsTransform.rotation);
 		var rhsExtents = Vector3.Scale(rhs.size * 0.5f, rhsTransform.lossyScale);
-		var rhsExtentsAxis = new Axis3d(rhsExtents, rhsTransform.rotation);
+		var rhsExtentsAxis = new AxisPack3(rhsExtents, rhsTransform.rotation);
 
 		//lhs
 		for (int i = 0, iMax = 3; i < iMax; ++i) {
@@ -139,7 +139,7 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 		var rhsBounds = rhs.bounds;
 
 		var distanceAxis = lhsBounds.center - rhsBounds.center;
-		var lhsUnitAxis = new Axis3d(lhsTransform.rotation);
+		var lhsUnitAxis = new AxisPack3(lhsTransform.rotation);
 		var lhsExtents = Vector3.Scale(lhs.size * 0.5f, lhsTransform.lossyScale);
 		var rhsExtents = rhsBounds.extents.x;
 		var sqrRhsExtents = rhsExtents * rhsExtents;
@@ -441,27 +441,27 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 		return result;
 	}
 
-	struct Segment {
+	private struct Segment3 {
 		public Vector3 origin;
 		public Vector3 direction;
 
-		public Segment(Vector3 origin, Vector3 direction) {
+		public Segment3(Vector3 origin, Vector3 direction) {
 			this.origin = origin;
 			this.direction = direction;
 		}
 	}
 
-	struct Plane {
+	private struct Plane3 {
 		public Vector3 origin;
 		public Vector3 normal;
 
-		public Plane(Vector3 origin, Vector3 normal) {
+		public Plane3(Vector3 origin, Vector3 normal) {
 			this.origin = origin;
 			this.normal = normal;
 		}
 	}
 
-	private class Axis3d {
+	private class AxisPack3 {
 		private Vector3[] axis;
 
 		public Vector3 this[int i] {
@@ -480,13 +480,13 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 			set{this.axis[2] = value;}
 			get{return this.axis[2];}
 		}
-		public Axis3d() : this(Vector3.one, Quaternion.identity) {}
-		public Axis3d(Vector3 scale) : this(scale, Quaternion.identity) {}
-		public Axis3d(Quaternion rotation) : this(Vector3.one, rotation) {}
-		public Axis3d(Vector3 scale, Quaternion rotation) {
+		public AxisPack3() : this(Vector3.one, Quaternion.identity) {}
+		public AxisPack3(Vector3 scale) : this(scale, Quaternion.identity) {}
+		public AxisPack3(Quaternion rotation) : this(Vector3.one, rotation) {}
+		public AxisPack3(Vector3 scale, Quaternion rotation) {
 			this.axis = new[]{Vector3.right * scale.x, Vector3.up * scale.y, Vector3.forward * scale.z}.Select(x=>rotation * x).ToArray();
 		}
-		public Axis3d(Vector3 right, Vector3 up, Vector3 forward) {
+		public AxisPack3(Vector3 right, Vector3 up, Vector3 forward) {
 			this.axis = new[]{right, up, forward}.ToArray();
 		}
 	}
@@ -501,7 +501,7 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 		return Mathf.Abs(Vector3.Dot(projection, src));
 	}
 
-	private static float GetVectorLengthOfProjection(Axis3d axis, Vector3 projection) {
+	private static float GetVectorLengthOfProjection(AxisPack3 axis, Vector3 projection) {
 		float result = Enumerable.Range(0, 3)
 								.Select(x=>GetVectorLengthOfProjection(projection, axis[x]))
 								.Sum();
@@ -522,7 +522,7 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 	private static Vector3[] GetVerticesOfBox(BoxCollider src) {
 		var srcTransform = src.transform;
 		var srcBounds = src.bounds;
-		var axisSize = new Axis3d(Vector3.Scale(src.size, srcTransform.lossyScale), srcTransform.rotation);
+		var axisSize = new AxisPack3(Vector3.Scale(src.size, srcTransform.lossyScale), srcTransform.rotation);
 		var minPoint = srcBounds.center - (axisSize.right + axisSize.up + axisSize.forward) * 0.5f;
 
 		var result = new Vector3[8];
@@ -535,69 +535,69 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 		return result;
 	}
 
-	private static Segment[] GetSidesOfBox(BoxCollider src) {
+	private static Segment3[] GetSidesOfBox(BoxCollider src) {
 		var vertices = GetVerticesOfBox(src);
 
 		Vector3 direction;
-		var result = new Segment[12];
+		var result = new Segment3[12];
 		//x
 		direction = vertices[1] - vertices[0];
-		result[0] = new Segment(vertices[0], direction);
-		result[1] = new Segment(vertices[2], direction);
-		result[2] = new Segment(vertices[4], direction);
-		result[3] = new Segment(vertices[6], direction);
+		result[0] = new Segment3(vertices[0], direction);
+		result[1] = new Segment3(vertices[2], direction);
+		result[2] = new Segment3(vertices[4], direction);
+		result[3] = new Segment3(vertices[6], direction);
 		//y
 		direction = vertices[2] - vertices[0];
-		result[4] = new Segment(vertices[0], direction);
-		result[5] = new Segment(vertices[1], direction);
-		result[6] = new Segment(vertices[4], direction);
-		result[7] = new Segment(vertices[5], direction);
+		result[4] = new Segment3(vertices[0], direction);
+		result[5] = new Segment3(vertices[1], direction);
+		result[6] = new Segment3(vertices[4], direction);
+		result[7] = new Segment3(vertices[5], direction);
 		//z
 		direction = vertices[4] - vertices[0];
-		result[8] = new Segment(vertices[0], direction);
-		result[9] = new Segment(vertices[1], direction);
-		result[10]= new Segment(vertices[2], direction);
-		result[11]= new Segment(vertices[3], direction);
+		result[8] = new Segment3(vertices[0], direction);
+		result[9] = new Segment3(vertices[1], direction);
+		result[10]= new Segment3(vertices[2], direction);
+		result[11]= new Segment3(vertices[3], direction);
 
 		return result;
 	}
 
-	private static float GetSignDistance(Vector3 lhs, Plane rhs) {
+	private static float GetSignDistance(Vector3 lhs, Plane3 rhs) {
 		return Vector3.Dot(rhs.normal, lhs - rhs.origin);
 	}
 
-	private static Vector3 GetNearestPoint(Vector3 lhs, Plane rhs) {
+	private static Vector3 GetNearestPoint(Vector3 lhs, Plane3 rhs) {
 		return lhs - rhs.normal * GetSignDistance(lhs, rhs);
 	}
 
-	private static Plane[] GetPlaneOfBox(BoxCollider src) {
+	private static Plane3[] GetPlaneOfBox(BoxCollider src) {
 		var srcTransform = src.transform;
 		var srcBounds = src.bounds;
-		var axisUnit = new Axis3d(srcTransform.rotation);
-		var axisSize = new Axis3d(Vector3.Scale(src.size * 0.5f, srcTransform.lossyScale), srcTransform.rotation);
+		var axisUnit = new AxisPack3(srcTransform.rotation);
+		var axisSize = new AxisPack3(Vector3.Scale(src.size * 0.5f, srcTransform.lossyScale), srcTransform.rotation);
 
-		var result = new Plane[6];
-		result[0] = new Plane(srcBounds.center + axisSize.right,  axisUnit.right);
-		result[1] = new Plane(srcBounds.center - axisSize.right, -axisUnit.right);
-		result[2] = new Plane(srcBounds.center + axisSize.up,  axisUnit.up);
-		result[3] = new Plane(srcBounds.center - axisSize.up, -axisUnit.up);
-		result[4] = new Plane(srcBounds.center + axisSize.forward,  axisUnit.forward);
-		result[5] = new Plane(srcBounds.center - axisSize.forward, -axisUnit.forward);
+		var result = new Plane3[6];
+		result[0] = new Plane3(srcBounds.center + axisSize.right,  axisUnit.right);
+		result[1] = new Plane3(srcBounds.center - axisSize.right, -axisUnit.right);
+		result[2] = new Plane3(srcBounds.center + axisSize.up,  axisUnit.up);
+		result[3] = new Plane3(srcBounds.center - axisSize.up, -axisUnit.up);
+		result[4] = new Plane3(srcBounds.center + axisSize.forward,  axisUnit.forward);
+		result[5] = new Plane3(srcBounds.center - axisSize.forward, -axisUnit.forward);
 		return result;
 	}
 	
 
-	private static Segment GetSegmentOfCapsule(CapsuleCollider src) {
+	private static Segment3 GetSegmentOfCapsule(CapsuleCollider src) {
 		var srcTransform = src.transform;
 
 		Vector3 origin = GetDirectionBaseVectorOfCapsule(src);
 		var length = src.height - src.radius * 2.0f;
 		var direction = srcTransform.rotation * Vector3.Scale(origin * length, srcTransform.lossyScale);
 		origin = direction * -0.5f + src.bounds.center;
-		return new Segment(origin, direction);
+		return new Segment3(origin, direction);
 	}
 
-	private static Vector3 GetNearestPoint(Vector3 lhs, Segment rhs) {
+	private static Vector3 GetNearestPoint(Vector3 lhs, Segment3 rhs) {
 		var rhsOrigin = rhs.origin;
 		var rhsDirection = rhs.direction;
 
@@ -609,7 +609,7 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 		return rhsOrigin + rhsDirection * rhsProgress;
 	}
 
-	private static float GetSqrDistance(Vector3 lhs, Segment rhs) {
+	private static float GetSqrDistance(Vector3 lhs, Segment3 rhs) {
 		var rhsNearest = GetNearestPoint(lhs, rhs);
 		var distance = lhs - rhsNearest;
 		return distance.sqrMagnitude;
@@ -620,7 +620,7 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 		var rhsBounds = rhs.bounds;
 
 		var distanceAxis = lhs - rhsBounds.center;
-		var rhsUnitAxis = new Axis3d(rhsTransform.rotation);
+		var rhsUnitAxis = new AxisPack3(rhsTransform.rotation);
 		var rhsExtents = Vector3.Scale(rhs.size * 0.5f, rhsTransform.lossyScale);
 
 		var result = rhsBounds.center;
@@ -638,7 +638,7 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 		return distance.sqrMagnitude;
 	}
 
-	private static Vector3[] GetNearestPoint(Segment lhs, Segment rhs) {
+	private static Vector3[] GetNearestPoint(Segment3 lhs, Segment3 rhs) {
 		var lhsOrigin = lhs.origin;
 		var lhsDirection = lhs.direction;
 		var rhsOrigin = rhs.origin;
@@ -695,7 +695,7 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 		return new[]{lhsPosition, rhsPosition};
 	}
 
-	private static float GetSqrDistance(Segment lhs, Segment rhs) {
+	private static float GetSqrDistance(Segment3 lhs, Segment3 rhs) {
 		var nearestPoints = GetNearestPoint(lhs, rhs);
 		var distance = nearestPoints[0]  - nearestPoints[1];
 		return distance.sqrMagnitude;

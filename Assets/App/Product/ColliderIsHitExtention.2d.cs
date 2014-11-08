@@ -40,6 +40,7 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 		}
 	}
 
+	#region BoxCollider2D
 	public static bool IsHit(BoxCollider2D lhs, BoxCollider2D rhs) {
 		var lhsBounds = lhs.bounds;
 		var rhsBounds = rhs.bounds;
@@ -95,7 +96,9 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 	public static bool IsHit(BoxCollider2D lhs, PolygonCollider2D rhs) {
 		throw new System.NotImplementedException();
 	}
+	#endregion
 
+	#region CircleCollider2D
 	public static bool IsHit(CircleCollider2D lhs, BoxCollider2D rhs) {
 		return IsHit(rhs, lhs);
 	}
@@ -120,7 +123,9 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 	public static bool IsHit(CircleCollider2D lhs, PolygonCollider2D rhs) {
 		throw new System.NotImplementedException();
 	}
+	#endregion
 
+	#region EdgeCollider2D
 	public static bool IsHit(EdgeCollider2D lhs, BoxCollider2D rhs) {
 		throw new System.NotImplementedException();
 	}
@@ -136,7 +141,9 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 	public static bool IsHit(EdgeCollider2D lhs, PolygonCollider2D rhs) {
 		throw new System.NotImplementedException();
 	}
+	#endregion
 
+	#region PolygonCollider2D
 	public static bool IsHit(PolygonCollider2D lhs, BoxCollider2D rhs) {
 		throw new System.NotImplementedException();
 	}
@@ -152,8 +159,9 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 	public static bool IsHit(PolygonCollider2D lhs, PolygonCollider2D rhs) {
 		throw new System.NotImplementedException();
 	}
+	#endregion
 
-
+	#region Private
 	private enum Collider2DType {
 		UnknownCollider2D,
 		BoxCollider2D,
@@ -323,4 +331,5 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 		var distance = lhs - rhsNearest;
 		return distance.sqrMagnitude;
 	}
+	#endregion
 }

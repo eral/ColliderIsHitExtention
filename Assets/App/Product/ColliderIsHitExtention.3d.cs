@@ -79,6 +79,7 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 		}
 	}
 
+	#region BoxCollider
 	public static bool IsHit(BoxCollider lhs, BoxCollider rhs) {
 		var lhsTransform = lhs.transform;
 		var lhsBounds = lhs.bounds;
@@ -238,7 +239,9 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 	public static bool IsHit(BoxCollider lhs, WheelCollider rhs) {
 		throw new System.NotImplementedException();
 	}
+	#endregion
 
+	#region SphereCollider
 	public static bool IsHit(SphereCollider lhs, BoxCollider rhs) {
 		return IsHit(rhs, lhs);
 	}
@@ -285,7 +288,9 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 	public static bool IsHit(SphereCollider lhs, WheelCollider rhs) {
 		throw new System.NotImplementedException();
 	}
+	#endregion
 
+	#region CapsuleCollider
 	public static bool IsHit(CapsuleCollider lhs, BoxCollider rhs) {
 		return IsHit(rhs, lhs);
 	}
@@ -324,7 +329,9 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 	public static bool IsHit(CapsuleCollider lhs, WheelCollider rhs) {
 		throw new System.NotImplementedException();
 	}
+	#endregion
 
+	#region CharacterController
 	public static bool IsHit(CharacterController lhs, BoxCollider rhs) {
 		return IsHit(rhs, lhs);
 	}
@@ -352,7 +359,9 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 	public static bool IsHit(CharacterController lhs, WheelCollider rhs) {
 		throw new System.NotImplementedException();
 	}
+	#endregion
 
+	#region TerrainCollider
 	public static bool IsHit(TerrainCollider lhs, BoxCollider rhs) {
 		throw new System.NotImplementedException();
 	}
@@ -380,7 +389,9 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 	public static bool IsHit(TerrainCollider lhs, WheelCollider rhs) {
 		throw new System.NotImplementedException();
 	}
+	#endregion
 
+	#region WheelCollider
 	public static bool IsHit(WheelCollider lhs, BoxCollider rhs) {
 		throw new System.NotImplementedException();
 	}
@@ -408,8 +419,9 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 	public static bool IsHit(WheelCollider lhs, WheelCollider rhs) {
 		throw new System.NotImplementedException();
 	}
+	#endregion
 
-
+	#region Private
 	private enum ColliderType {
 		UnknownCollider,
 		BoxCollider,
@@ -700,4 +712,5 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 		var distance = nearestPoints[0]  - nearestPoints[1];
 		return distance.sqrMagnitude;
 	}
+	#endregion
 }

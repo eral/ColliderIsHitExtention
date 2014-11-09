@@ -177,34 +177,28 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 			var voronoiKind = Enumerable.Range(0, axisRegion.Length)
 										.Select(x=>((0.0f <= axisRegion[x])? 1<<x: 0))
 										.Sum();
-										
+			IEnumerable<int> axisIndices = null;
 			switch (voronoiKind) {
 			case ((1<<0) + (1<<1) + (1<<2)): //Hit
 				return true;
 			case ((0<<0) + (1<<1) + (1<<2)): //X-axis plane near
-				if (Enumerable.Range(0, 2)
-								.Select(x=>signDistances[x])
-								.Any(x=>((0.0f<=x)&&(x<=rhsExtents)))) {
-					return true;
-				}
+				axisIndices = Enumerable.Range(0, 2);
 				break;
 			case ((1<<0) + (0<<1) + (1<<2)): //Y-axis plane near
-				if (Enumerable.Range(2, 2)
-								.Select(x=>signDistances[x])
-								.Any(x=>((0.0f<=x)&&(x<=rhsExtents)))) {
-					return true;
-				}
+				axisIndices = Enumerable.Range(2, 2);
 				break;
 			case ((1<<0) + (1<<1) + (0<<2)): //Z-axis plane near
-				if (Enumerable.Range(4, 2)
-								.Select(x=>signDistances[x])
-								.Any(x=>((0.0f<=x)&&(x<=rhsExtents)))) {
-					return true;
-				}
+				axisIndices = Enumerable.Range(4, 2);
 				break;
 			default:
 				//empty.
 				break;
+			}
+			if (null != axisIndices) {
+				var signAxisDistances = axisIndices.Select(x=>signDistances[x]);
+				if (signAxisDistances.Any(x=>((0.0f<=x)&&(x<=rhsExtents)))) {
+					return true;
+				}
 			}
 		}
 	
@@ -212,10 +206,24 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 		var lhsSegments = GetSidesOfBox(lhs);
 		var rhsSqrExtents = rhsExtents * rhsExtents;
 		
-		foreach (var lhsSegment in lhsSegments) {
-			var segmentSqrDistance = GetSqrDistance(lhsSegment, rhsSegment);
+		var segmentSqrDistances = new float[lhsSegments.Length];
+		for (int i = 0, i_max = lhsSegments.Length; i < i_max; ++i) {
+			var segmentSqrDistance = GetSqrDistance(lhsSegments[i], rhsSegment);
 			if (segmentSqrDistance < rhsSqrExtents) {
 				//Hit
+				return true;
+			}
+			segmentSqrDistances[i] = segmentSqrDistance;
+		}
+		//Through
+		{
+			var lhsTransform = lhs.transform;
+			var lhsSize = Vector3.Scale(lhs.size, lhsTransform.lossyScale);
+			var lhsSqrSize = Vector3.Scale(lhsSize, lhsSize);
+			var lhsSqrDiagonal = new Vector3(lhsSqrSize[1] + lhsSqrSize[2], lhsSqrSize[0] + lhsSqrSize[2], lhsSqrSize[0] + lhsSqrSize[1]);
+			var isThrough = (new[]{0, 1, 4, 5, 8, 9}).Select(x=>new{sqrDistance = segmentSqrDistances[x] + segmentSqrDistances[x + 2], lhsSqrDiagonal = lhsSqrDiagonal[x>>2]})
+													.Any(x=>x.sqrDistance < x.lhsSqrDiagonal);
+			if (isThrough) {
 				return true;
 			}
 		}

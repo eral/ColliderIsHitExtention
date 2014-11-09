@@ -7065,7 +7065,7 @@ GameObject:
   - 114: {fileID: 807104054}
   - 114: {fileID: 807104053}
   m_Layer: 0
-  m_Name: Through1d_Hit
+  m_Name: Penetration1d_Hit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7173,7 +7173,7 @@ GameObject:
   - 114: {fileID: 810046146}
   - 114: {fileID: 810046145}
   m_Layer: 0
-  m_Name: Through3d_Hit
+  m_Name: Penetration3d_Hit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -13031,7 +13031,7 @@ GameObject:
   - 114: {fileID: 1535818157}
   - 114: {fileID: 1535818156}
   m_Layer: 0
-  m_Name: Through2d_Hit
+  m_Name: Penetration2d_Hit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

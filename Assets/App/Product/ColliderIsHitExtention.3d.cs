@@ -168,15 +168,16 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 
 		//Plane & Point
 		var points = new[]{rhsSegment.origin, rhsSegment.origin + rhsSegment.direction};
-		foreach (var point in points) {
-			var signDistances = lhsPlanes.Select(x=>GetSignDistance(point, x)).ToArray();
+		var planeCross = 0;
+		for (int i = 0, i_max = points.Length; i < i_max; ++i) {
+			var signDistances = lhsPlanes.Select(x=>GetSignDistance(points[i], x)).ToArray();
 			var axisRegion = Enumerable.Range(0, signDistances.Length / 2)
 										.Select(x=>x * 2)
 										.Select(x=>signDistances[x] * signDistances[x+1])
 										.ToArray();
 			var voronoiKind = Enumerable.Range(0, axisRegion.Length)
 										.Select(x=>((0.0f <= axisRegion[x])? 1<<x: 0))
-										.Sum();
+										.Aggregate((x,y)=>x|y);
 			IEnumerable<int> axisIndices = null;
 			switch (voronoiKind) {
 			case ((1<<0) + (1<<1) + (1<<2)): //Hit
@@ -200,6 +201,29 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 					return true;
 				}
 			}
+			planeCross ^= Enumerable.Range(0, signDistances.Length)
+									.Select(x=>((0.0f < signDistances[x])? 1<<x: 0))
+									.Aggregate((x,y)=>x|y);
+		}
+
+		//Plane & Segment
+		if (0 != planeCross) {
+			var planeIndices = Enumerable.Range(0, lhsPlanes.Length)
+										.Where(x=>0 != ((1 << x) & planeCross));
+			foreach (var planeIndex in planeIndices) {
+				var crossPoint = GetNearestPoint(new Ray(rhsSegment.origin, rhsSegment.direction), lhsPlanes[planeIndex]);
+				var signDistances = Enumerable.Range(0, lhsPlanes.Length)
+												.SkipWhile(x=>(x & 0x01) == (planeIndex & 0x01))
+												.Select(x=>GetSignDistance(crossPoint, lhsPlanes[x]))
+												.ToArray();
+				var isCross = Enumerable.Range(0, signDistances.Length / 2)
+											.Select(x=>x * 2)
+											.Select(x=>signDistances[x] * signDistances[x+1])
+											.All(x=>0.0f <= x);
+				if (isCross) {
+					return true;
+				}
+			}
 		}
 	
 		//Segment & Segment or Segment & Point
@@ -214,18 +238,6 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 				return true;
 			}
 			segmentSqrDistances[i] = segmentSqrDistance;
-		}
-		//Through
-		{
-			var lhsTransform = lhs.transform;
-			var lhsSize = Vector3.Scale(lhs.size, lhsTransform.lossyScale);
-			var lhsSqrSize = Vector3.Scale(lhsSize, lhsSize);
-			var lhsSqrDiagonal = new Vector3(lhsSqrSize[1] + lhsSqrSize[2], lhsSqrSize[0] + lhsSqrSize[2], lhsSqrSize[0] + lhsSqrSize[1]);
-			var isThrough = (new[]{0, 1, 4, 5, 8, 9}).Select(x=>new{sqrDistance = segmentSqrDistances[x] + segmentSqrDistances[x + 2], lhsSqrDiagonal = lhsSqrDiagonal[x>>2]})
-													.Any(x=>x.sqrDistance < x.lhsSqrDiagonal);
-			if (isThrough) {
-				return true;
-			}
 		}
 
 		//NoHit
@@ -588,6 +600,16 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 
 	private static Vector3 GetNearestPoint(Vector3 lhs, Plane3 rhs) {
 		return lhs - rhs.normal * GetSignDistance(lhs, rhs);
+	}
+
+	private static Vector3 GetNearestPoint(Ray lhs, Plane3 rhs) {
+		var result = lhs.origin;
+		if (lhs.direction != rhs.normal) {
+			var signDistance = GetSignDistance(lhs.origin, rhs);
+			var weight = Vector3.Dot(-rhs.normal, lhs.direction);
+			result = lhs.GetPoint(signDistance / weight);
+		}
+		return result;
 	}
 
 	private static Plane3[] GetPlaneOfBox(BoxCollider src) {

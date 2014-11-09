@@ -143,7 +143,7 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 		var lhsUnitAxis = new AxisPack3(lhsTransform.rotation);
 		var lhsExtents = Vector3.Scale(lhs.size * 0.5f, lhsTransform.lossyScale);
 		var rhsExtents = rhsBounds.extents.x;
-		var sqrRhsExtents = rhsExtents * rhsExtents;
+		var rhsSqrExtents = rhsExtents * rhsExtents;
 
 		var sqrDistanceFromBoxEdge = 0.0f;
 		for (int i = 0, iMax = 3; i < iMax; ++i) {
@@ -157,7 +157,7 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 				sqrDistanceFromBoxEdge += distance * distance;
 			}
 		}
-		return sqrDistanceFromBoxEdge < sqrRhsExtents;
+		return sqrDistanceFromBoxEdge < rhsSqrExtents;
 	}
 
 	public static bool IsHit(BoxCollider lhs, CapsuleCollider rhs) {
@@ -210,11 +210,11 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 	
 		//Segment & Segment or Segment & Point
 		var lhsSegments = GetSidesOfBox(lhs);
-		var sqrRhsExtents = rhsExtents * rhsExtents;
+		var rhsSqrExtents = rhsExtents * rhsExtents;
 		
 		foreach (var lhsSegment in lhsSegments) {
 			var segmentSqrDistance = GetSqrDistance(lhsSegment, rhsSegment);
-			if (segmentSqrDistance < sqrRhsExtents) {
+			if (segmentSqrDistance < rhsSqrExtents) {
 				//Hit
 				return true;
 			}

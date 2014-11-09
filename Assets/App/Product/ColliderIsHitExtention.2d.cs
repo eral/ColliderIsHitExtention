@@ -81,12 +81,12 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 		var lhsVertices = GetVerticesOfBox(lhs);
 		var rhsBounds = rhs.bounds;
 		var rhsExtents = rhsBounds.extents.x;
-		var sqrRhsExtents = rhsExtents * rhsExtents;
+		var rhsSqrExtents = rhsExtents * rhsExtents;
 
 		var lhsVerticesClockwise = new[]{lhsVertices[0], lhsVertices[1], lhsVertices[3], lhsVertices[2]};
 		var sqrDistances = GetSqrDistance(rhsBounds.center, lhsVerticesClockwise);
 
-		return sqrDistances < sqrRhsExtents;
+		return sqrDistances < rhsSqrExtents;
 	}
 
 	public static bool IsHit(BoxCollider2D lhs, EdgeCollider2D rhs) {

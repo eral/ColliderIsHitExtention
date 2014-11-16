@@ -147,9 +147,8 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 		var rhsEdges = Enumerable.Range(0, rhsPoints.Length - 1)
 								.Select(x=>new Segment2(rhsPoints[x], rhsPoints[x+1]-rhsPoints[x]));
 
-		var epsilon = lhsPoints[0].x / (1 << 20);
 		var result = lhsEdges.SelectMany(x=>rhsEdges.Select(y=>new{lhs=x, rhs=y}))
-							.Any(x=>GetSqrDistance(x.lhs, x.rhs) <= epsilon);
+							.Any(x=>IsHit(x.lhs, x.rhs));
 		return result;
 	}
 
@@ -360,6 +359,33 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 		var nearestPoints = GetNearestPoint(lhs, rhs);
 		var distance = nearestPoints[0]  - nearestPoints[1];
 		return distance.sqrMagnitude;
+	}
+
+	private static bool IsHit(Segment2 lhs, Segment2 rhs) {
+		//lhs
+		{
+			var rhsPoints = new[]{rhs.origin, rhs.origin + rhs.direction};
+			var voronoiKind = rhsPoints.Select(x=>x - lhs.origin)
+										.Select(x=>Vector2PrepDot(lhs.direction, x))
+										.Aggregate((x,y)=>x*y);
+			if (0.0f < voronoiKind) {
+				//NoHit
+				return false;
+			}
+		}
+		//rhs
+		{
+			var lhsPoints = new[]{lhs.origin, lhs.origin + lhs.direction};
+			var voronoiKind = lhsPoints.Select(x=>x - rhs.origin)
+										.Select(x=>Vector2PrepDot(rhs.direction, x))
+										.Aggregate((x,y)=>x*y);
+			if (0.0f < voronoiKind) {
+				//NoHit
+				return false;
+			}
+		}
+		//Hit
+		return true;
 	}
 
 	private static float GetSqrDistance(Vector2 lhs, IEnumerable<Vector2> rhsVerticesCounterclockwise) {

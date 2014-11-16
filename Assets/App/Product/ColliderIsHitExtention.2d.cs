@@ -135,7 +135,21 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(EdgeCollider2D lhs, EdgeCollider2D rhs) {
-		throw new System.NotImplementedException();
+		var lhsMatrix = lhs.transform.localToWorldMatrix;
+		var rhsMatrix = rhs.transform.localToWorldMatrix;
+
+		var lhsPoints = lhs.points.Select(x=>(Vector2)lhsMatrix.MultiplyPoint3x4(x))
+									.ToArray();
+		var rhsPoints = rhs.points.Select(x=>(Vector2)rhsMatrix.MultiplyPoint3x4(x))
+									.ToArray();
+		var lhsEdges = Enumerable.Range(0, lhsPoints.Length - 1)
+								.Select(x=>new Segment2(lhsPoints[x], lhsPoints[x+1]-lhsPoints[x]));
+		var rhsEdges = Enumerable.Range(0, rhsPoints.Length - 1)
+								.Select(x=>new Segment2(rhsPoints[x], rhsPoints[x+1]-rhsPoints[x]));
+
+		var result = lhsEdges.SelectMany(x=>rhsEdges.Select(y=>new{lhs=x, rhs=y}))
+							.Any(x=>IsHit(x.lhs, x.rhs));
+		return result;
 	}
 
 	public static bool IsHit(EdgeCollider2D lhs, PolygonCollider2D rhs) {
@@ -184,6 +198,16 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 			throw new System.ArgumentNullException();
 		}
 		return result;
+	}
+
+	private struct Segment2 {
+		public Vector2 origin;
+		public Vector2 direction;
+
+		public Segment2(Vector2 origin, Vector2 direction) {
+			this.origin = origin;
+			this.direction = direction;
+		}
 	}
 
 	private class AxisPack2 {
@@ -272,6 +296,96 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 		default:
 			return GetNearestPointConvexPolygon(lhs, rhsVerticesCounterclockwise);
 		}
+	}
+
+	private static Vector2[] GetNearestPoint(Segment2 lhs, Segment2 rhs) {
+		var lhsOrigin = lhs.origin;
+		var lhsDirection = lhs.direction;
+		var rhsOrigin = rhs.origin;
+		var rhsDirection = rhs.direction;
+
+		var between = lhsOrigin - rhsOrigin;
+		var lhsSqrLength = lhsDirection.sqrMagnitude;
+		var rhsSqrLength = rhsDirection.sqrMagnitude;
+
+		float lhsProgress, rhsProgress;
+		do {
+			if ((0.0f == lhsSqrLength) || (0.0f == rhsSqrLength)) {
+				//Point & Point
+				lhsProgress = 0.0f;
+				rhsProgress = 0.0f;
+				break;
+			}
+
+			var betweenOfRhsProjection = Vector2.Dot(rhsDirection, between);
+			if (0.0f == lhsSqrLength) {
+				//Point & Segment
+				lhsProgress = 0.0f;
+				rhsProgress = Mathf.Clamp01(betweenOfRhsProjection / rhsSqrLength);
+				break;
+			}
+			var betweenOfLhsProjection = Vector2.Dot(lhsDirection, between);
+			if (0.0f == rhsSqrLength) {
+				//Segment & Point
+				lhsProgress = Mathf.Clamp01(-betweenOfLhsProjection / lhsSqrLength);
+				rhsProgress = 0.0f;
+				break;
+			}
+			//Segment & Segment
+			var rhsOfLhsProjection = Vector2.Dot(lhsDirection, rhsDirection);
+			var denom = lhsSqrLength * rhsSqrLength - rhsOfLhsProjection * rhsOfLhsProjection;
+			if (0.0f != denom) {
+				lhsProgress = Mathf.Clamp01((rhsOfLhsProjection * betweenOfRhsProjection - betweenOfLhsProjection * rhsSqrLength) / denom);
+			} else {
+				lhsProgress = 0.0f;
+			}
+			var rhsProgressNom = rhsOfLhsProjection * lhsProgress + betweenOfRhsProjection;
+			if (rhsProgressNom < 0.0f) {
+				rhsProgress = 0.0f;
+				lhsProgress = Mathf.Clamp01(-betweenOfLhsProjection / lhsSqrLength);
+			} else if (rhsSqrLength < rhsProgressNom) {
+				rhsProgress = 1.0f;
+				lhsProgress = Mathf.Clamp01((rhsOfLhsProjection - betweenOfLhsProjection) / lhsSqrLength);
+			} else {
+				rhsProgress = rhsProgressNom / rhsSqrLength;
+			}
+		} while (false);
+		var lhsPosition = lhsOrigin + lhsDirection * lhsProgress;
+		var rhsPosition = rhsOrigin + rhsDirection * rhsProgress;
+		return new[]{lhsPosition, rhsPosition};
+	}
+
+	private static float GetSqrDistance(Segment2 lhs, Segment2 rhs) {
+		var nearestPoints = GetNearestPoint(lhs, rhs);
+		var distance = nearestPoints[0]  - nearestPoints[1];
+		return distance.sqrMagnitude;
+	}
+
+	private static bool IsHit(Segment2 lhs, Segment2 rhs) {
+		//lhs
+		{
+			var rhsPoints = new[]{rhs.origin, rhs.origin + rhs.direction};
+			var voronoiKind = rhsPoints.Select(x=>x - lhs.origin)
+										.Select(x=>Vector2PrepDot(lhs.direction, x))
+										.Aggregate((x,y)=>x*y);
+			if (0.0f < voronoiKind) {
+				//NoHit
+				return false;
+			}
+		}
+		//rhs
+		{
+			var lhsPoints = new[]{lhs.origin, lhs.origin + lhs.direction};
+			var voronoiKind = lhsPoints.Select(x=>x - rhs.origin)
+										.Select(x=>Vector2PrepDot(rhs.direction, x))
+										.Aggregate((x,y)=>x*y);
+			if (0.0f < voronoiKind) {
+				//NoHit
+				return false;
+			}
+		}
+		//Hit
+		return true;
 	}
 
 	private static float GetSqrDistance(Vector2 lhs, IEnumerable<Vector2> rhsVerticesCounterclockwise) {

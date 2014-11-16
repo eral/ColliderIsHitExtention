@@ -4,6 +4,8 @@ TextureImporter:
   fileIDToRecycleName:
     21300000: Rect
     21300002: Circle
+    21300004: PentagonLine
+    21300006: Pentagon
   serializedVersion: 2
   mipmaps:
     mipMapMode: 0
@@ -58,10 +60,30 @@ TextureImporter:
     - name: Circle
       rect:
         serializedVersion: 2
-        x: 128
-        y: 128
+        x: 129
+        y: 129
+        width: 126
+        height: 126
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: PentagonLine
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 3
         width: 128
-        height: 128
+        height: 120
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Pentagon
+      rect:
+        serializedVersion: 2
+        x: 129
+        y: 3
+        width: 126
+        height: 120
       alignment: 0
       pivot: {x: .5, y: .5}
       border: {x: 0, y: 0, z: 0, w: 0}

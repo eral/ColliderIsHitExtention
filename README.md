@@ -19,5 +19,5 @@ UnityにてCollider(とrigidbody)を使って当たり判定すると、どう�
 |:---------------:|:-:|:----:|:--:|:-----:|
 |BoxCollider2D    |✓ |✓    |    |       |
 |CircleCollider2D |✓ |✓    |    |       |
-|EdgeCollider2D   |   |      |    |       |
+|EdgeCollider2D   |   |      |✓  |       |
 |PolygonCollider2D|   |      |    |       |

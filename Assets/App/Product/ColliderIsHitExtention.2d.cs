@@ -90,7 +90,27 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(BoxCollider2D lhs, EdgeCollider2D rhs) {
-		throw new System.NotImplementedException();
+		var lhsMatrix = lhs.transform.localToWorldMatrix;
+		var rhsMatrix = rhs.transform.localToWorldMatrix;
+
+		var lhsPoints = GetVerticesOfBox(lhs);
+		var rhsPoints = rhs.points.Select(x=>(Vector2)rhsMatrix.MultiplyPoint3x4(x))
+									.ToArray();
+		var lhsEdges = new[]{new[]{0, 1}, new[]{1, 3}, new[]{3, 2}, new[]{2, 0}}
+								.Select(x=>new Segment2(lhsPoints[x[0]], lhsPoints[x[1]]-lhsPoints[x[0]]));
+		var rhsEdges = Enumerable.Range(0, rhsPoints.Length - 1)
+								.Select(x=>new Segment2(rhsPoints[x], rhsPoints[x+1]-rhsPoints[x]));
+
+		var result = lhsEdges.SelectMany(x=>rhsEdges.Select(y=>new{lhs=x, rhs=y}))
+							.Any(x=>IsHit(x.lhs, x.rhs));
+		if (!result) {
+			var isConnotation = lhsEdges.Select(x=>Vector2PrepDot(x.direction, rhsPoints[0] - x.origin))
+										.All(x=>0.0f<=x);
+			if (isConnotation) {
+				result = true;
+			}
+		}
+		return result;
 	}
 
 	public static bool IsHit(BoxCollider2D lhs, PolygonCollider2D rhs) {
@@ -127,7 +147,7 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 
 	#region EdgeCollider2D
 	public static bool IsHit(EdgeCollider2D lhs, BoxCollider2D rhs) {
-		throw new System.NotImplementedException();
+		return IsHit(rhs, lhs);
 	}
 
 	public static bool IsHit(EdgeCollider2D lhs, CircleCollider2D rhs) {

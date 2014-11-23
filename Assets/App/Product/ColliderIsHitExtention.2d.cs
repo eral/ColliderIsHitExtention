@@ -90,7 +90,6 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(BoxCollider2D lhs, EdgeCollider2D rhs) {
-		var lhsMatrix = lhs.transform.localToWorldMatrix;
 		var rhsMatrix = rhs.transform.localToWorldMatrix;
 
 		var lhsPoints = GetVerticesOfBox(lhs);

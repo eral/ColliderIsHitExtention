@@ -136,7 +136,15 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(CircleCollider2D lhs, EdgeCollider2D rhs) {
-		throw new System.NotImplementedException();
+		var lhsBounds = lhs.bounds;
+		var lhsExtents = lhsBounds.extents.x;
+		var lhsSqrExtents = lhsExtents * lhsExtents;
+		var rhsMatrix = rhs.transform.localToWorldMatrix;
+		var rhsVertices = rhs.points.Select(x=>(Vector2)rhsMatrix.MultiplyPoint3x4(x));
+
+		var sqrDistances = GetSqrDistance(lhsBounds.center, rhsVertices);
+
+		return sqrDistances < lhsSqrExtents;
 	}
 
 	public static bool IsHit(CircleCollider2D lhs, PolygonCollider2D rhs) {
@@ -150,7 +158,7 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 	}
 
 	public static bool IsHit(EdgeCollider2D lhs, CircleCollider2D rhs) {
-		throw new System.NotImplementedException();
+		return IsHit(rhs, lhs);
 	}
 
 	public static bool IsHit(EdgeCollider2D lhs, EdgeCollider2D rhs) {

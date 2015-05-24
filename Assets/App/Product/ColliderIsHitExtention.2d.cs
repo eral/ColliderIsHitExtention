@@ -284,7 +284,7 @@ public partial class ColliderIsHitExtention : MonoBehaviour {
 
 	private static Vector2[] GetVerticesOfBox(BoxCollider2D src) {
 		var matrix = src.transform.localToWorldMatrix;
-		var minPoint = src.center - src.size * 0.5f;
+		var minPoint = src.offset - src.size * 0.5f;
 
 		var localPosition = new Vector2[4];
 		for (int i = 0, iMax = localPosition.Length; i < iMax; ++i) {
